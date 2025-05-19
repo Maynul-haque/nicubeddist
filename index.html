@@ -1,0 +1,1518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NICU Bed Distribution App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .tab-btn.active {
+            background-color: #2563eb;
+            color: white;
+            border-bottom-color: transparent;
+        }
+        .tab-btn {
+            background-color: #e5e7eb;
+            color: #374151;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .tab-btn:hover { background-color: #d1d5db; }
+        .bed-card {
+            transition: all 0.3s ease;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+        }
+        .bed-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px -5px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+        }
+        textarea { resize: none; border-radius: 0.375rem; }
+        @media (max-width: 768px) {
+            .responsive-grid { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+            .header-title { font-size: 1.875rem; }
+        }
+        
+        /* Styling for checkbox groups (metadata, active beds, supervisors, today's doctors) */
+        .scrollable-checkbox-group {
+            min-height: 100px;
+            max-height: 150px; 
+            overflow-y: auto;
+            border: 1px solid #d1d5db; 
+            border-radius: 0.375rem; 
+            padding: 0.5rem;
+            background-color: #fff;
+        }
+        /* Thicker Scrollbars */
+        .scrollable-checkbox-group::-webkit-scrollbar { width: 12px; }
+        .scrollable-checkbox-group::-webkit-scrollbar-track { background: #e5e7eb; border-radius: 6px; }
+        .scrollable-checkbox-group::-webkit-scrollbar-thumb { background-color: #2563eb; border-radius: 6px; }
+        .scrollable-checkbox-group {
+            scrollbar-width: auto; /* For Firefox, 'auto' or 'thin' */
+            scrollbar-color: #2563eb #e5e7eb;
+        }
+
+        .scrollable-checkbox-group label {
+            display: block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .scrollable-checkbox-group label:hover:not(.disabled-option) { /* Allow hover only if not disabled */
+            background-color: #f0f4f8; 
+        }
+        .scrollable-checkbox-group input[type="checkbox"] {
+            margin-right: 0.5rem;
+            accent-color: #2563eb; 
+        }
+        .scrollable-checkbox-group .optgroup-label {
+            font-weight: 600;
+            color: #4b5563; 
+            margin-top: 0.5rem;
+            margin-bottom: 0.25rem;
+            padding-left: 0.25rem;
+        }
+        /* Styling for unavailable names at the bottom (Req 13) */
+        .scrollable-checkbox-group label.disabled-option {
+            color: #9ca3af; /* gray-400 */
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        .scrollable-checkbox-group label.disabled-option:hover {
+             background-color: transparent; /* No hover effect for disabled */
+        }
+         .scrollable-checkbox-group input[type="checkbox"]:disabled {
+            cursor: not-allowed;
+        }
+
+
+        .selected-names-box, .selected-todays-doctors-box {
+            min-height: 60px; border: 1px solid #d1d5db; border-radius: 0.375rem;
+            padding: 0.75rem; margin-bottom: 0.75rem; background-color: #f9fafb;
+            display: flex; flex-wrap: wrap; gap: 0.5rem;
+        }
+        .selected-todays-doctors-box { min-height: 40px; }
+
+        .selected-name-tag {
+            display: inline-flex; align-items: center; background-color: #10b981; color: white;
+            padding: 0.375rem 0.75rem; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 500;
+        }
+        .output-textarea {
+            min-height: 350px; font-family: 'Courier New', Courier, monospace; white-space: pre-wrap;
+            background-color: #f9fafb; border: 1px solid #d1d5db; border-radius: 0.375rem;
+        }
+        .category-supervisor-section { /* Renamed and adjusted for supervisor checkbox groups */
+            background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 0.75rem;
+            padding: 1.5rem; margin-top: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -1px rgba(0,0,0,0.04);
+        }
+        .action-btn {
+            padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-weight: 500;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            display: inline-flex; align-items: center; gap: 0.5rem;
+        }
+        .action-btn:hover { transform: translateY(-1px); }
+        .custom-category-field {
+            background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 0.5rem;
+            padding: 1rem; margin-bottom: 1rem;
+        }
+        #modal { background-color: rgba(0,0,0,0.6); }
+        #modal-content-box {
+             background-color: white; border-radius: 0.75rem; padding: 1.5rem;
+             max-width: 500px; width: 90%;
+             box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        /* Specific for today's doctors in bed card */
+        .todays-doctors-checkbox-group { 
+             min-height: 100px; max-height: 112px; /* h-28 */
+        }
+        /* Active beds optgroup styling */
+        #active-beds-checkbox-group .optgroup-label { /* Ensure optgroup labels in checkbox groups are styled */
+            font-weight: bold;
+            font-style: italic;
+            color: #1e3a8a; /* Tailwind blue-800 */
+            margin-top: 0.75rem;
+            margin-bottom: 0.25rem;
+        }
+        .clear-bed-btn {
+            background-color: #ef4444; /* red-500 */
+            color: white;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            border-radius: 0.25rem;
+            margin-top: 0.5rem;
+        }
+        .clear-bed-btn:hover {
+            background-color: #dc2626; /* red-600 */
+        }
+
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-7xl">
+        <header class="mb-10 text-center">
+            <h1 class="header-title text-4xl md:text-5xl font-bold text-blue-700 mb-3">
+                <i class="fas fa-procedures mr-3 text-blue-500"></i>NICU Bed Distribution
+            </h1>
+            <p class="text-gray-600 text-lg">Manage bed assignments and resident duties efficiently</p>
+        </header>
+
+        <div class="flex mb-8 border-b-2 border-gray-300">
+            <button class="tab-btn active px-6 py-3 font-semibold text-base rounded-t-lg mr-1" data-tab="distribution">
+                <i class="fas fa-bed mr-2"></i>Bed Distribution
+            </button>
+            <button class="tab-btn px-6 py-3 font-semibold text-base rounded-t-lg" data-tab="settings">
+                <i class="fas fa-cog mr-2"></i>Settings
+            </button>
+        </div>
+
+        <div class="bg-white p-5 rounded-xl shadow-md mb-8">
+            <div class="flex flex-wrap items-center gap-x-6 gap-y-4">
+                <div class="flex-1 min-w-[200px]">
+                    <label for="date-field" class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                    <input type="date" id="date-field" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="flex items-center pt-5">
+                    <input type="checkbox" id="manual-date" class="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                    <label for="manual-date" class="ml-2 text-sm text-gray-700">Manual Date</label>
+                </div>
+                <div class="pt-5">
+                     <button id="load-previous-day-btn" class="action-btn bg-indigo-500 text-white hover:bg-indigo-600 text-sm px-4 py-2">
+                        <i class="fas fa-history mr-2"></i>Load Previous Day
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="distribution" class="tab-content active">
+            <div class="bg-white p-6 rounded-xl shadow-md mb-10">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-6 flex items-center">
+                    <i class="fas fa-info-circle mr-3 text-blue-600"></i>Metadata
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Post Duty</label>
+                        <div class="selected-names-box" data-field="post-duty"></div>
+                        <div class="scrollable-checkbox-group metadata-checkbox-group" data-field="post-duty"></div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">24 Hour Duty</label>
+                        <div class="selected-names-box" data-field="24-hour-duty"></div>
+                        <div class="scrollable-checkbox-group metadata-checkbox-group" data-field="24-hour-duty"></div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Emergency Duty</label>
+                        <div class="selected-names-box" data-field="emergency-duty"></div>
+                        <div class="scrollable-checkbox-group metadata-checkbox-group" data-field="emergency-duty"></div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Cabin Block Duty</label>
+                        <div class="selected-names-box" data-field="cabin-block-duty"></div>
+                        <div class="scrollable-checkbox-group metadata-checkbox-group" data-field="cabin-block-duty"></div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Post-duty Cabin Block</label>
+                        <div class="selected-names-box" data-field="post-duty-cabin-block"></div>
+                        <div class="scrollable-checkbox-group metadata-checkbox-group" data-field="post-duty-cabin-block"></div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Post Anti-discrimination Duty</label>
+                        <div class="selected-names-box" data-field="post-anti-discrimination-duty"></div>
+                        <div class="scrollable-checkbox-group metadata-checkbox-group" data-field="post-anti-discrimination-duty"></div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">On Leave Today</label>
+                        <div class="selected-names-box" data-field="on-leave-today"></div>
+                        <div class="scrollable-checkbox-group metadata-checkbox-group" data-field="on-leave-today"></div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Sick Leave</label>
+                        <div class="selected-names-box" data-field="sick-leave"></div>
+                        <div class="scrollable-checkbox-group metadata-checkbox-group" data-field="sick-leave"></div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">OPD</label> <!-- New OPD Category -->
+                        <div class="selected-names-box" data-field="opd"></div>
+                        <div class="scrollable-checkbox-group metadata-checkbox-group" data-field="opd"></div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Training/Workshop</label>
+                        <div class="selected-names-box" data-field="training-workshop"></div>
+                        <div class="scrollable-checkbox-group metadata-checkbox-group" data-field="training-workshop"></div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Departmental Work</label>
+                        <div class="selected-names-box" data-field="departmental-work"></div>
+                        <div class="scrollable-checkbox-group metadata-checkbox-group" data-field="departmental-work"></div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Infection Control</label>
+                        <div class="selected-names-box" data-field="infection-control"></div>
+                        <div class="scrollable-checkbox-group metadata-checkbox-group" data-field="infection-control"></div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">PNR</label>
+                        <div class="selected-names-box" data-field="pnr"></div>
+                        <div class="scrollable-checkbox-group metadata-checkbox-group" data-field="pnr"></div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">OT</label>
+                        <div class="selected-names-box" data-field="ot"></div>
+                        <div class="scrollable-checkbox-group metadata-checkbox-group" data-field="ot"></div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">New patients will be received by</label>
+                        <div class="selected-names-box" data-field="new-patients"></div>
+                        <div class="scrollable-checkbox-group metadata-checkbox-group" data-field="new-patients"></div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">New case presenter</label>
+                        <div class="selected-names-box" data-field="new-case-presenter"></div>
+                        <div class="scrollable-checkbox-group metadata-checkbox-group" data-field="new-case-presenter"></div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Referral</label>
+                        <div class="selected-names-box" data-field="referral"></div>
+                        <div class="scrollable-checkbox-group metadata-checkbox-group" data-field="referral"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow-md mb-10">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-6 flex items-center">
+                    <i class="fas fa-check-square mr-3 text-blue-600"></i>Select Active Beds
+                </h2>
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Choose beds with patients today:</label>
+                    <div id="active-beds-checkbox-group" class="scrollable-checkbox-group">
+                        <!-- Checkboxes will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-md mb-10">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-8 flex items-center">
+                    <i class="fas fa-bed-pulse mr-3 text-blue-600"></i>Bed Assignments 
+                </h2>
+                
+                <div class="category-supervisor-section mb-8">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Blue, Ward, Cabin</h3>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Supervisors (Phase B)</label>
+                        <div id="blue-ward-cabin-supervisors-checkbox-group" class="scrollable-checkbox-group"></div>
+                    </div>
+                    <div class="grid responsive-grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="blue-ward-cabin-container">
+                        <p class="text-gray-500 italic col-span-full empty-message">Select active beds above to see assignment options.</p>
+                    </div>
+                </div>
+                
+                <div class="category-supervisor-section">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-2">Yellow, Red</h3>
+                     <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Supervisors (Phase B)</label>
+                        <div id="yellow-red-supervisors-checkbox-group" class="scrollable-checkbox-group"></div>
+                    </div>
+                    <div class="grid responsive-grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="yellow-red-container">
+                         <p class="text-gray-500 italic col-span-full empty-message">Select active beds above to see assignment options.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-md mb-10 hidden" id="output-section">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-6 flex items-center">
+                    <i class="fas fa-file-alt mr-3 text-blue-600"></i>Distribution Output
+                </h2>
+                <textarea id="output-textarea" class="output-textarea w-full p-4" readonly></textarea>
+                <button id="copy-output-btn" class="action-btn mt-6 bg-blue-600 text-white hover:bg-blue-700">
+                    <i class="fas fa-copy mr-2"></i>Copy to Clipboard
+                </button>
+            </div>
+
+            <div class="flex flex-wrap justify-center gap-4 mb-8">
+                <button id="generate-btn" class="action-btn bg-blue-600 text-white hover:bg-blue-700">
+                    <i class="fas fa-cogs mr-2"></i>Generate Distribution
+                </button>
+                <button id="save-btn" class="action-btn bg-green-600 text-white hover:bg-green-700">
+                    <i class="fas fa-save mr-2"></i>Save Locally
+                </button>
+                <button id="load-btn" class="action-btn bg-yellow-500 text-black hover:bg-yellow-600">
+                    <i class="fas fa-folder-open mr-2"></i>Load Saved
+                </button>
+                <button id="clear-btn" class="action-btn bg-gray-600 text-white hover:bg-gray-700">
+                    <i class="fas fa-broom mr-2"></i>Clear All
+                </button>
+            </div>
+        </div>
+
+        <div id="settings" class="tab-content">
+            <div class="bg-white p-7 rounded-xl shadow-md mb-8">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-8 flex items-center">
+                    <i class="fas fa-users-cog mr-3 text-blue-600"></i>Resident Management
+                </h2>
+                
+                <div class="mb-8">
+                    <h3 class="text-lg font-medium text-gray-700 mb-4">Default Categories</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div>
+                            <label for="phase-b" class="block text-sm font-medium text-gray-700 mb-1">Phase B</label>
+                            <textarea id="phase-b" class="w-full p-3 border border-gray-300 rounded-lg" rows="5" placeholder="Enter names, separated by commas or one per line"></textarea>
+                        </div>
+                        <div>
+                            <label for="phase-a" class="block text-sm font-medium text-gray-700 mb-1">Phase A</label>
+                            <textarea id="phase-a" class="w-full p-3 border border-gray-300 rounded-lg" rows="5" placeholder="Enter names, separated by commas or one per line"></textarea>
+                        </div>
+                        <div>
+                            <label for="gynae" class="block text-sm font-medium text-gray-700 mb-1">Gynae</label>
+                            <textarea id="gynae" class="w-full p-3 border border-gray-300 rounded-lg" rows="5" placeholder="Enter names, separated by commas or one per line"></textarea>
+                        </div>
+                        <div>
+                            <label for="feto" class="block text-sm font-medium text-gray-700 mb-1">Feto</label>
+                            <textarea id="feto" class="w-full p-3 border border-gray-300 rounded-lg" rows="5" placeholder="Enter names, separated by commas or one per line"></textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-8">
+                    <h3 class="text-lg font-medium text-gray-700 mb-4">Additional Categories</h3>
+                    <div id="custom-categories"></div>
+                    <button id="add-category-btn" class="mt-3 px-5 py-2.5 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition flex items-center font-medium">
+                        <i class="fas fa-plus mr-2"></i>Add Custom Category
+                    </button>
+                </div>
+                
+                <div class="flex flex-wrap gap-4">
+                    <button id="save-settings-btn" class="action-btn bg-blue-600 text-white hover:bg-blue-700">
+                        <i class="fas fa-save mr-2"></i>Save Settings to App
+                    </button>
+                     <button id="save-current-settings-btn" class="action-btn bg-teal-600 text-white hover:bg-teal-700">
+                        <i class="fas fa-archive mr-2"></i>Archive Current Settings
+                    </button>
+                    <button id="load-saved-settings-btn" class="action-btn bg-cyan-600 text-white hover:bg-cyan-700">
+                        <i class="fas fa-upload mr-2"></i>Load Archived Settings
+                    </button>
+                    <button id="load-sample-btn" class="action-btn bg-purple-600 text-white hover:bg-purple-700">
+                        <i class="fas fa-vial mr-2"></i>Load Sample Data
+                    </button>
+                    <button id="reset-settings-btn" class="action-btn bg-red-600 text-white hover:bg-red-700">
+                        <i class="fas fa-trash-alt mr-2"></i>Reset Settings
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center hidden z-50 p-4">
+        <div id="modal-content-box" class="bg-white rounded-xl p-7 max-w-md w-full mx-auto shadow-xl">
+            <div class="flex justify-between items-center mb-5">
+                <h3 id="modal-title" class="text-xl font-semibold text-gray-800"></h3>
+                <button id="close-modal" class="text-gray-500 hover:text-gray-700 transition">
+                    <i class="fas fa-times fa-lg"></i>
+                </button>
+            </div>
+            <div id="modal-body" class="mb-6 text-gray-600"></div>
+            <div class="flex justify-end gap-3">
+                 <button id="cancel-modal" class="action-btn bg-gray-200 text-gray-700 hover:bg-gray-300 hidden">Cancel</button>
+                <button id="confirm-modal" class="action-btn bg-blue-600 text-white hover:bg-blue-700">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const ALL_BED_DEFINITIONS = [
+            { name: 'Blue 1', category: 'blue-ward-cabin', group: 'Blue Beds' }, { name: 'Blue 2', category: 'blue-ward-cabin', group: 'Blue Beds' },
+            { name: 'Blue 3', category: 'blue-ward-cabin', group: 'Blue Beds' }, { name: 'Blue 4', category: 'blue-ward-cabin', group: 'Blue Beds' },
+            { name: 'Blue 5', category: 'blue-ward-cabin', group: 'Blue Beds' }, { name: 'Blue 6', category: 'blue-ward-cabin', group: 'Blue Beds' },
+            { name: 'Ward 1', category: 'blue-ward-cabin', group: 'Ward Beds' }, { name: 'Ward 2', category: 'blue-ward-cabin', group: 'Ward Beds' },
+            { name: 'Ward 3', category: 'blue-ward-cabin', group: 'Ward Beds' }, { name: 'Ward 4', category: 'blue-ward-cabin', group: 'Ward Beds' },
+            { name: 'Ward 5', category: 'blue-ward-cabin', group: 'Ward Beds' },
+            { name: 'Cabin 1', category: 'blue-ward-cabin', group: 'Cabin Beds' }, { name: 'Cabin 2', category: 'blue-ward-cabin', group: 'Cabin Beds' },
+            { name: 'Cabin 3', category: 'blue-ward-cabin', group: 'Cabin Beds' }, { name: 'Cabin 4', category: 'blue-ward-cabin', group: 'Cabin Beds' },
+            { name: 'Yellow 7', category: 'yellow-red', group: 'Yellow Beds' }, { name: 'Yellow 8', category: 'yellow-red', group: 'Yellow Beds' },
+            { name: 'Yellow 9', category: 'yellow-red', group: 'Yellow Beds' }, { name: 'Yellow 10', category: 'yellow-red', group: 'Yellow Beds' },
+            { name: 'Yellow 11', category: 'yellow-red', group: 'Yellow Beds' }, { name: 'Yellow 12', category: 'yellow-red', group: 'Yellow Beds' },
+            { name: 'Red 14', category: 'yellow-red', group: 'Red Beds' }, { name: 'Red 15', category: 'yellow-red', group: 'Red Beds' },
+            { name: 'Red 16', category: 'yellow-red', group: 'Red Beds' }, { name: 'Red 17', category: 'yellow-red', group: 'Red Beds' },
+            { name: 'Red 18', category: 'yellow-red', group: 'Red Beds' }, { name: 'Red 19', category: 'yellow-red', group: 'Red Beds' },
+            { name: 'Red 20', category: 'yellow-red', group: 'Red Beds' }
+        ];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initApp();
+            
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-tab');
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+            
+            const dateField = document.getElementById('date-field');
+            const manualDateCheckbox = document.getElementById('manual-date');
+            if (!manualDateCheckbox.checked) {
+                dateField.value = new Date().toISOString().substr(0, 10);
+            }
+            manualDateCheckbox.addEventListener('change', function() {
+                dateField.disabled = this.checked;
+                if (!this.checked && !dateField.value) {
+                    dateField.value = new Date().toISOString().substr(0, 10);
+                }
+            });
+            
+            const modal = document.getElementById('modal');
+            document.getElementById('close-modal').addEventListener('click', () => modal.classList.add('hidden'));
+            document.getElementById('cancel-modal').addEventListener('click', () => modal.classList.add('hidden'));
+            
+            populateActiveBedsCheckboxGroup(); // Changed from select to checkbox group
+            document.getElementById('active-beds-checkbox-group').addEventListener('change', (event) => { // Listen to group for delegation
+                if (event.target.type === 'checkbox') {
+                    renderActiveBedCards();
+                    // populateResidentDropdowns(); // Called within renderActiveBedCards
+                }
+            });
+            renderActiveBedCards(); 
+        });
+        
+        const unavailableResidents = new Set(); // Tracks residents unavailable for general duties/bed assignments
+        const primaryUnavailabilityFields = [ // Fields that make a resident generally unavailable
+            'post-duty', 'on-leave-today', 'sick-leave', 'opd',
+            // These were in unavailabilityFields but might not be primary for *all* other tasks
+            'emergency-duty', 'cabin-block-duty', 'post-duty-cabin-block', 
+            'post-anti-discrimination-duty', 'training-workshop', 'departmental-work', 'pnr', 'ot'
+        ];
+        // Fields that contribute to the 'unavailableResidents' set for bed assignments
+        const bedAssignmentUnavailabilityFields = [
+            'post-duty', 'on-leave-today', 'sick-leave', 'opd',
+            'emergency-duty', 'cabin-block-duty', 'post-duty-cabin-block', 
+            'post-anti-discrimination-duty', 'training-workshop', 'departmental-work', 'pnr', 'ot'
+            // '24-hour-duty' might be informational rather than strict unavailability for all dropdowns
+            // 'infection-control' is special (Req 1)
+        ];
+        
+        function initApp() {
+            loadSettingsFromLocalStorage(); // Loads main settings
+            
+            document.getElementById('save-settings-btn').addEventListener('click', saveSettingsToApp);
+            document.getElementById('save-current-settings-btn').addEventListener('click', archiveCurrentSettings);
+            document.getElementById('load-saved-settings-btn').addEventListener('click', loadArchivedSettings);
+            document.getElementById('load-sample-btn').addEventListener('click', loadSampleData);
+            document.getElementById('reset-settings-btn').addEventListener('click', resetSettings);
+            document.getElementById('add-category-btn').addEventListener('click', addNewCategory);
+
+            document.getElementById('generate-btn').addEventListener('click', generateDistribution);
+            document.getElementById('save-btn').addEventListener('click', saveDistribution);
+            document.getElementById('load-btn').addEventListener('click', loadDistribution);
+            document.getElementById('clear-btn').addEventListener('click', clearAllData);
+            document.getElementById('copy-output-btn').addEventListener('click', copyOutputToClipboard);
+            document.getElementById('load-previous-day-btn').addEventListener('click', loadPreviousDayAssignments);
+            
+            populateMetadataCheckboxGroups();
+            updateCombinedUnavailability(); 
+            populateResidentDropdownsAndCheckboxes(); 
+        }
+
+        function loadSettingsFromLocalStorage() {
+             if (localStorage.getItem('nicuSettings')) {
+                const settings = JSON.parse(localStorage.getItem('nicuSettings'));
+                applySettingsToUI(settings);
+            }
+        }
+
+        function applySettingsToUI(settings) {
+            if (settings.categories) {
+                for (const [category, names] of Object.entries(settings.categories)) {
+                    const textarea = document.getElementById(category.toLowerCase().replace(/\s+/g, '-'));
+                    if (textarea) textarea.value = names.join('\n');
+                }
+            }
+            const customCategoriesContainer = document.getElementById('custom-categories');
+            customCategoriesContainer.innerHTML = ''; 
+            if (settings.customCategories) {
+                settings.customCategories.forEach(category => addCustomCategoryField(category.name, category.names.join('\n')));
+            }
+            // After applying settings, refresh dependent UI parts
+            populateMetadataCheckboxGroups();
+            updateCombinedUnavailability();
+            populateResidentDropdownsAndCheckboxes();
+        }
+
+
+        function populateActiveBedsCheckboxGroup() {
+            const groupContainer = document.getElementById('active-beds-checkbox-group');
+            groupContainer.innerHTML = ''; 
+            const bedGroups = {};
+            ALL_BED_DEFINITIONS.forEach(bed => {
+                if (!bedGroups[bed.group]) {
+                    bedGroups[bed.group] = [];
+                }
+                bedGroups[bed.group].push(bed);
+            });
+
+            // Sort group names (optional, but good for consistency)
+            const sortedGroupNames = Object.keys(bedGroups).sort();
+
+            sortedGroupNames.forEach(groupName => {
+                const optgroupLabelDiv = document.createElement('div');
+                optgroupLabelDiv.className = 'optgroup-label';
+                optgroupLabelDiv.textContent = groupName;
+                groupContainer.appendChild(optgroupLabelDiv);
+
+                // Sort beds within the group alphabetically (Req 4)
+                const sortedBedsInGroup = bedGroups[groupName].sort((a, b) => a.name.localeCompare(b.name));
+
+                sortedBedsInGroup.forEach(bed => {
+                    const label = document.createElement('label');
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.value = bed.name;
+                    checkbox.id = `active-bed-cb-${CSS.escape(bed.name)}`;
+                    label.appendChild(checkbox);
+                    label.appendChild(document.createTextNode(" " + bed.name));
+                    groupContainer.appendChild(label);
+                });
+            });
+        }
+
+
+        function renderActiveBedCards() {
+            const blueWardCabinContainer = document.getElementById('blue-ward-cabin-container');
+            const yellowRedContainer = document.getElementById('yellow-red-container');
+            const activeBedsGroup = document.getElementById('active-beds-checkbox-group');
+            
+            blueWardCabinContainer.innerHTML = '';
+            yellowRedContainer.innerHTML = '';
+
+            const selectedBedNames = Array.from(activeBedsGroup.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+
+            let blueWardCabinHasBeds = false;
+            let yellowRedHasBeds = false;
+
+            ALL_BED_DEFINITIONS.forEach(bedDef => {
+                if (selectedBedNames.includes(bedDef.name)) {
+                    const bedCard = createBedCard(bedDef.name);
+                    if (bedDef.category === 'blue-ward-cabin') {
+                        blueWardCabinContainer.appendChild(bedCard);
+                        blueWardCabinHasBeds = true;
+                    } else if (bedDef.category === 'yellow-red') {
+                        yellowRedContainer.appendChild(bedCard);
+                        yellowRedHasBeds = true;
+                    }
+                }
+            });
+            
+            const toggleEmptyMessage = (container, hasBeds) => {
+                let emptyMsg = container.querySelector('.empty-message');
+                if (!emptyMsg && !hasBeds) {
+                    emptyMsg = document.createElement('p');
+                    emptyMsg.className = 'text-gray-500 italic col-span-full empty-message';
+                    emptyMsg.textContent = 'No beds selected for this category.';
+                    container.appendChild(emptyMsg);
+                } else if (emptyMsg) {
+                    emptyMsg.classList.toggle('hidden', hasBeds);
+                }
+            };
+
+            toggleEmptyMessage(blueWardCabinContainer, blueWardCabinHasBeds);
+            toggleEmptyMessage(yellowRedContainer, yellowRedHasBeds);
+            
+            populateResidentDropdownsAndCheckboxes(); 
+        }
+        
+        function createBedCard(bedName) {
+            const bedCard = document.createElement('div');
+            bedCard.className = 'bed-card p-4 bg-white shadow-sm';
+            bedCard.dataset.bedName = bedName; 
+            bedCard.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <h3 class="font-semibold text-lg mb-3 text-gray-800">${bedName}</h3>
+                    <button class="clear-bed-btn" title="Clear assignments for this bed"><i class="fas fa-times"></i> Clear</button>
+                </div>
+                <div class="mb-3">
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Assigned (Ph-B)</label>
+                    <select class="w-full p-2.5 border border-gray-300 rounded-md assigned-doctor text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Select doctor</option>
+                    </select>
+                </div>
+                <div class="mb-2">
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Selected for Today</label>
+                    <div class="selected-todays-doctors-box min-h-[40px] border border-gray-200 rounded-md p-2 bg-gray-50 flex flex-wrap gap-1"></div>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Assign Today's Doctors</label>
+                    <div class="scrollable-checkbox-group todays-doctors-checkbox-group"></div>
+                </div>
+            `;
+            bedCard.querySelector('.clear-bed-btn').addEventListener('click', () => clearSingleBedAssignments(bedName));
+            return bedCard;
+        }
+
+        function clearSingleBedAssignments(bedName) {
+            const bedCard = document.querySelector(`.bed-card[data-bed-name="${CSS.escape(bedName)}"]`);
+            if (bedCard) {
+                bedCard.querySelector('.assigned-doctor').value = "";
+                bedCard.querySelectorAll('.todays-doctors-checkbox-group input[type="checkbox"]').forEach(cb => cb.checked = false);
+                updateSelectedTodaysDoctorsInBox(bedCard);
+                showModal("Bed Cleared", `Assignments for ${bedName} have been cleared.`);
+            }
+        }
+
+
+        function updateSelectedTodaysDoctorsInBox(bedCardElement) {
+            const displayBox = bedCardElement.querySelector('.selected-todays-doctors-box');
+            const checkboxGroup = bedCardElement.querySelector('.todays-doctors-checkbox-group');
+            if (!displayBox || !checkboxGroup) return;
+
+            displayBox.innerHTML = '';
+            checkboxGroup.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
+                const tag = document.createElement('span');
+                tag.className = 'selected-name-tag bg-sky-500';
+                tag.textContent = checkbox.value;
+                displayBox.appendChild(tag);
+            });
+        }
+
+        function getResidentAvailabilityStatus(residentName, currentField = null) {
+            const status = {
+                isStrictlyUnavailable: false, // For post-duty, on-leave, sick-leave, opd
+                isGenerallyUnavailable: false, // For bed assignments (includes primary + other duties)
+                isAvailableForInfectionControl: true,
+                isAvailableForNewPatients: true
+            };
+
+            const postDutySelections = getSelectedNamesFromMetadata('post-duty');
+            const onLeaveSelections = getSelectedNamesFromMetadata('on-leave-today');
+            const sickLeaveSelections = getSelectedNamesFromMetadata('sick-leave');
+            const opdSelections = getSelectedNamesFromMetadata('opd');
+
+            if (onLeaveSelections.has(residentName) || sickLeaveSelections.has(residentName)) {
+                status.isStrictlyUnavailable = true;
+                status.isGenerallyUnavailable = true;
+                status.isAvailableForInfectionControl = false; // Cannot do infection control if on leave/sick
+                status.isAvailableForNewPatients = false;
+                return status; // Absolute unavailability
+            }
+
+            if (postDutySelections.has(residentName) || opdSelections.has(residentName)) {
+                status.isStrictlyUnavailable = true; // Unavailable for other metadata if post-duty/OPD
+                status.isGenerallyUnavailable = true; // Unavailable for beds if post-duty/OPD
+                 // Can still do infection control if post-duty/OPD (Req 1 specific interpretation)
+                 // Cannot receive new patients if post-duty/OPD for this logic
+                status.isAvailableForNewPatients = false; 
+            }
+            
+            // Check other bed assignment unavailability fields
+            bedAssignmentUnavailabilityFields.forEach(field => {
+                if (field !== 'post-duty' && field !== 'on-leave-today' && field !== 'sick-leave' && field !== 'opd') {
+                    if (getSelectedNamesFromMetadata(field).has(residentName)) {
+                        status.isGenerallyUnavailable = true;
+                        // If generally unavailable for beds, also unavailable for new patients by default
+                        status.isAvailableForNewPatients = false;
+                    }
+                }
+            });
+            
+            return status;
+        }
+
+        function getSelectedNamesFromMetadata(field) {
+            const set = new Set();
+            const groupContainer = document.querySelector(`.metadata-checkbox-group[data-field="${field}"]`);
+            if (groupContainer) {
+                groupContainer.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => set.add(cb.value));
+            }
+            return set;
+        }
+
+
+        function populateMetadataCheckboxGroups() {
+            const metadataGroupContainers = document.querySelectorAll('.metadata-checkbox-group');
+            const settings = localStorage.getItem('nicuSettings') ? JSON.parse(localStorage.getItem('nicuSettings')) : { categories: {}, customCategories: [] };
+            let allResidentsByCategory = { ...settings.categories };
+            if (settings.customCategories) {
+                settings.customCategories.forEach(cat => {
+                    allResidentsByCategory[cat.name] = cat.names ? [...cat.names] : []; // Ensure it's an array
+                });
+            }
+            // Alphabetical sort within categories (Req 4)
+            for (const category in allResidentsByCategory) {
+                if (Array.isArray(allResidentsByCategory[category])) {
+                    allResidentsByCategory[category].sort((a, b) => a.localeCompare(b));
+                }
+            }
+
+
+            metadataGroupContainers.forEach(groupContainer => {
+                const currentSelections = Array.from(groupContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+                groupContainer.innerHTML = ''; 
+                const field = groupContainer.dataset.field;
+
+                const residentCheckboxes = { available: [], unavailable: [] };
+
+                const createCheckboxElement = (name, value, fieldName, isDisabled, isUnavailableStyled) => {
+                    const label = document.createElement('label');
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.value = value;
+                    checkbox.name = `${fieldName}-${value.replace(/\s+/g, '_')}`;
+                    checkbox.id = `checkbox-${fieldName}-${CSS.escape(value.replace(/[^\w-]/g, ''))}`;
+                    
+                    if (currentSelections.includes(value)) checkbox.checked = true;
+                    checkbox.disabled = isDisabled;
+                    if (isUnavailableStyled) label.classList.add('disabled-option');
+                    
+                    checkbox.addEventListener('change', () => {
+                        updateSelectedNamesBox(groupContainer);
+                        updateCombinedUnavailability(); 
+                        // If a primary unavailability field changes, repopulate all to reflect cascading disables
+                        if (primaryUnavailabilityFields.includes(field) || field === 'infection-control') { 
+                            populateMetadataCheckboxGroups(); 
+                        }
+                        populateResidentDropdownsAndCheckboxes(); 
+                    });
+                    label.appendChild(checkbox);
+                    label.appendChild(document.createTextNode(" " + name));
+                    return label;
+                };
+                
+                const categoryOrder = ['Phase B', 'Phase A', 'Gynae', 'Feto'].concat(
+                    settings.customCategories ? settings.customCategories.map(c => c.name) : []
+                );
+
+                categoryOrder.forEach(categoryName => {
+                    if (allResidentsByCategory[categoryName] && allResidentsByCategory[categoryName].length > 0) {
+                        const optgroupLabelDiv = document.createElement('div');
+                        optgroupLabelDiv.className = 'optgroup-label';
+                        optgroupLabelDiv.textContent = categoryName;
+                        // Will append this later if there are any checkboxes for this category
+
+                        let hasCheckboxesInOptgroup = false;
+                        allResidentsByCategory[categoryName].forEach(name => {
+                            let isDisabled = false;
+                            let isUnavailableStyled = false;
+                            const availabilityStatus = getResidentAvailabilityStatus(name, field);
+
+                            if (field === 'infection-control') { // Req 1: Infection control availability
+                                isDisabled = !availabilityStatus.isAvailableForInfectionControl;
+                                isUnavailableStyled = isDisabled;
+                            } else if (field === 'new-patients') { // Req 3: New patients received by
+                                isDisabled = !availabilityStatus.isAvailableForNewPatients;
+                                isUnavailableStyled = isDisabled;
+                            } else { // For other metadata fields
+                                isDisabled = availabilityStatus.isStrictlyUnavailable;
+                                isUnavailableStyled = isDisabled;
+                            }
+                            
+                            const checkboxEl = createCheckboxElement(name, name, field, isDisabled, isUnavailableStyled);
+                            if (isUnavailableStyled) {
+                                residentCheckboxes.unavailable.push({el: checkboxEl, optgroup: optgroupLabelDiv, name: name});
+                            } else {
+                                residentCheckboxes.available.push({el: checkboxEl, optgroup: optgroupLabelDiv, name: name});
+                            }
+                            hasCheckboxesInOptgroup = true;
+                        });
+                         if(hasCheckboxesInOptgroup && !residentCheckboxes.available.find(item => item.optgroup === optgroupLabelDiv) && !residentCheckboxes.unavailable.find(item => item.optgroup === optgroupLabelDiv)){
+                            // If optgroup was created but no children added yet, means all were pushed to available/unavailable arrays
+                            // We need to ensure the optgroup label is added if there are items for it.
+                            // This is tricky, might need to add optgroup labels when appending items.
+                        }
+                    }
+                });
+
+                // Append available checkboxes, then unavailable (Req 13)
+                // Ensure optgroup labels are added correctly with their items
+                let lastAppendedOptgroupAvailable = null;
+                residentCheckboxes.available.forEach(item => {
+                    if (item.optgroup && item.optgroup !== lastAppendedOptgroupAvailable) {
+                        groupContainer.appendChild(item.optgroup);
+                        lastAppendedOptgroupAvailable = item.optgroup;
+                    }
+                    groupContainer.appendChild(item.el);
+                });
+
+                if (residentCheckboxes.unavailable.length > 0 && residentCheckboxes.available.length > 0) {
+                    const separator = document.createElement('hr'); // Visual separator
+                    separator.className = 'my-2 border-gray-300';
+                    groupContainer.appendChild(separator);
+                }
+                
+                let lastAppendedOptgroupUnavailable = null;
+                residentCheckboxes.unavailable.forEach(item => {
+                     if (item.optgroup && item.optgroup !== lastAppendedOptgroupUnavailable && item.optgroup !== lastAppendedOptgroupAvailable) {
+                        // Avoid re-adding if already added for available items
+                        if (!Array.from(groupContainer.children).includes(item.optgroup)) {
+                           groupContainer.appendChild(item.optgroup);
+                        }
+                        lastAppendedOptgroupUnavailable = item.optgroup;
+                    }
+                    groupContainer.appendChild(item.el);
+                });
+
+                updateSelectedNamesBox(groupContainer); 
+            });
+        }
+        
+        function updateCombinedUnavailability() {
+            unavailableResidents.clear();
+            // Use bedAssignmentUnavailabilityFields to determine who is unavailable for bed assignments
+            bedAssignmentUnavailabilityFields.forEach(field => {
+                const selectedInField = getSelectedNamesFromMetadata(field);
+                selectedInField.forEach(name => unavailableResidents.add(name));
+            });
+        }
+        
+        function updateSelectedNamesBox(groupContainer) {
+            const field = groupContainer.dataset.field;
+            const selectedBox = document.querySelector(`.selected-names-box[data-field="${field}"]`);
+            if (selectedBox) {
+                selectedBox.innerHTML = ''; 
+                groupContainer.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
+                    const tag = document.createElement('span');
+                    tag.className = 'selected-name-tag';
+                    tag.textContent = checkbox.value;
+                    selectedBox.appendChild(tag);
+                });
+            }
+        }
+        
+       function populateResidentDropdownsAndCheckboxes() { // Renamed
+            const assignedDoctorSelects = document.querySelectorAll('.assigned-doctor');
+            const todaysDoctorsCheckboxGroups = document.querySelectorAll('.todays-doctors-checkbox-group');
+            const supervisorCheckboxGroups = { // Changed from selects to checkbox groups
+                'blue-ward-cabin': document.getElementById('blue-ward-cabin-supervisors-checkbox-group'),
+                'yellow-red': document.getElementById('yellow-red-supervisors-checkbox-group')
+            };
+            
+            const settings = localStorage.getItem('nicuSettings') ? JSON.parse(localStorage.getItem('nicuSettings')) : { categories: {}, customCategories: [] };
+            let phaseBResidents = (settings.categories && settings.categories['Phase B']) ? [...settings.categories['Phase B']] : [];
+            phaseBResidents.sort((a,b) => a.localeCompare(b)); // Sort Phase B (Req 4)
+
+            // For assignedDoctor (Phase B for beds - Req 9: always available in this dropdown)
+            assignedDoctorSelects.forEach(select => {
+                const currentValue = select.value;
+                select.innerHTML = '<option value="">Select doctor</option>';
+                phaseBResidents.forEach(name => {
+                    const option = document.createElement('option');
+                    option.value = name;
+                    option.textContent = name;
+                    // No unavailability check here per Req 9
+                    select.appendChild(option);
+                });
+                select.value = currentValue; // Restore selection
+            });
+
+            // For Supervisor Checkbox Groups (Phase B only) (Req 10)
+            for (const key in supervisorCheckboxGroups) {
+                const groupElement = supervisorCheckboxGroups[key];
+                if (!groupElement) continue;
+
+                const currentSelectedNames = Array.from(groupElement.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+                groupElement.innerHTML = ''; 
+
+                const availableForGroup = [];
+                const unavailableForGroup = [];
+
+                phaseBResidents.forEach(name => {
+                    const availabilityStatus = getResidentAvailabilityStatus(name);
+                    // Supervisors are for bed duty, so use isGenerallyUnavailable.
+                    // However, the spirit of Req 9 might extend to supervisors too - that Phase B are always *listable* for supervisory roles.
+                    // Let's assume supervisors follow general bed assignment unavailability for now, unless specified otherwise.
+                    const isDisabled = availabilityStatus.isGenerallyUnavailable; 
+
+                    const checkboxId = `supervisor-${key}-${CSS.escape(name.replace(/[^\w-]/g, ''))}`;
+                    const label = document.createElement('label');
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.value = name;
+                    checkbox.id = checkboxId;
+                    if (currentSelectedNames.includes(name)) checkbox.checked = true;
+                    checkbox.disabled = isDisabled;
+                    
+                    label.appendChild(checkbox);
+                    label.appendChild(document.createTextNode(" " + name));
+
+                    if (isDisabled) {
+                        label.classList.add('disabled-option');
+                        unavailableForGroup.push(label);
+                    } else {
+                        availableForGroup.push(label);
+                    }
+                });
+                availableForGroup.forEach(label => groupElement.appendChild(label));
+                if (unavailableForGroup.length > 0 && availableForGroup.length > 0) groupElement.appendChild(document.createElement('hr'));
+                unavailableForGroup.forEach(label => groupElement.appendChild(label));
+            }
+
+
+            // For Today's Doctors (checkbox groups - non-Phase B)
+            const nonPhaseBCategoriesRaw = ['Phase A', 'Gynae', 'Feto'].concat(settings.customCategories ? settings.customCategories.map(c => c.name).filter(name => name !== 'Phase B') : []);
+            
+            todaysDoctorsCheckboxGroups.forEach(groupElement => {
+                const bedCard = groupElement.closest('.bed-card');
+                const currentSelectedNames = Array.from(groupElement.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+                groupElement.innerHTML = ''; 
+
+                const availableForGroup = { categories: {} };
+                const unavailableForGroup = { categories: {} };
+
+
+                nonPhaseBCategoriesRaw.forEach(catKeyOrName => {
+                    let namesInCategory = [];
+                    if (settings.categories && settings.categories[catKeyOrName]) {
+                        namesInCategory = [...settings.categories[catKeyOrName]];
+                    } else if (settings.customCategories) {
+                        const customCat = settings.customCategories.find(cc => cc.name === catKeyOrName);
+                        if (customCat && customCat.names) namesInCategory = [...customCat.names];
+                    }
+                    namesInCategory.sort((a, b) => a.localeCompare(b)); // Sort within category (Req 4)
+
+                    if (namesInCategory.length > 0) {
+                        availableForGroup.categories[catKeyOrName] = [];
+                        unavailableForGroup.categories[catKeyOrName] = [];
+
+                        namesInCategory.forEach(name => {
+                            const availabilityStatus = getResidentAvailabilityStatus(name);
+                            const isDisabled = availabilityStatus.isGenerallyUnavailable; // Bed assignment context
+
+                            const checkboxId = `bed-${bedCard.dataset.bedName}-todaydoc-${CSS.escape(name.replace(/[^\w-]/g, ''))}`;
+                            const label = document.createElement('label');
+                            const checkbox = document.createElement('input');
+                            checkbox.type = 'checkbox';
+                            checkbox.value = name;
+                            checkbox.id = checkboxId;
+                            if (currentSelectedNames.includes(name)) checkbox.checked = true;
+                            checkbox.disabled = isDisabled;
+
+                            checkbox.addEventListener('change', () => {
+                                updateSelectedTodaysDoctorsInBox(bedCard);
+                            });
+                            label.appendChild(checkbox);
+                            label.appendChild(document.createTextNode(" " + name));
+
+                            if (isDisabled) {
+                                label.classList.add('disabled-option');
+                                unavailableForGroup.categories[catKeyOrName].push(label);
+                            } else {
+                                availableForGroup.categories[catKeyOrName].push(label);
+                            }
+                        });
+                    }
+                });
+                
+                // Append available, then unavailable, maintaining category groups (Req 4 & 13)
+                let hasAddedAvailable = false;
+                for (const catName in availableForGroup.categories) {
+                    if (availableForGroup.categories[catName].length > 0) {
+                        const optLabel = document.createElement('div');
+                        optLabel.className = 'optgroup-label';
+                        optLabel.textContent = catName;
+                        groupElement.appendChild(optLabel);
+                        availableForGroup.categories[catName].forEach(label => groupElement.appendChild(label));
+                        hasAddedAvailable = true;
+                    }
+                }
+
+                let hasAddedUnavailable = false;
+                for (const catName in unavailableForGroup.categories) {
+                     if (unavailableForGroup.categories[catName].length > 0) {
+                        if (hasAddedAvailable && !hasAddedUnavailable) { // Add HR only once
+                            groupElement.appendChild(document.createElement('hr'));
+                        }
+                        const optLabel = document.createElement('div');
+                        optLabel.className = 'optgroup-label';
+                        optLabel.textContent = catName;
+                        groupElement.appendChild(optLabel);
+                        unavailableForGroup.categories[catName].forEach(label => groupElement.appendChild(label));
+                        hasAddedUnavailable = true;
+                    }
+                }
+                updateSelectedTodaysDoctorsInBox(bedCard); 
+            });
+        }
+        
+        function addCustomCategoryField(name = '', names = '') {
+            const container = document.getElementById('custom-categories');
+            const uniqueId = `custom-cat-${Date.now()}`;
+            const categoryDiv = document.createElement('div');
+            categoryDiv.className = 'custom-category-field mb-5 p-4 bg-gray-50 rounded-lg border border-gray-200';
+            categoryDiv.innerHTML = `
+                <div class="flex justify-between items-center mb-3">
+                    <label for="${uniqueId}-name" class="block text-sm font-medium text-gray-700">Category Name</label>
+                    <button class="remove-category text-red-500 hover:text-red-700 transition"><i class="fas fa-times-circle"></i></button>
+                </div>
+                <input type="text" id="${uniqueId}-name" value="${name}" class="category-name w-full p-2.5 border border-gray-300 rounded-md mb-3 focus:ring-1 focus:ring-blue-500 focus:border-blue-500" placeholder="Enter category name">
+                <label for="${uniqueId}-names" class="block text-sm font-medium text-gray-700 mb-1">Resident Names</label>
+                <textarea id="${uniqueId}-names" class="w-full p-2.5 border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500" rows="4" placeholder="Enter names, separated by commas or one per line">${names}</textarea>
+            `;
+            container.appendChild(categoryDiv);
+            categoryDiv.querySelector('.remove-category').addEventListener('click', function() {
+                showModal('Confirm Removal', 'Are you sure you want to remove this category?', () => categoryDiv.remove(), null, true);
+            });
+        }
+        
+        function addNewCategory() { addCustomCategoryField(); }
+        
+        function getCurrentSettingsFromUI() {
+            const settings = { categories: {}, customCategories: [] };
+            const defaultCategoryIds = ['phase-b', 'phase-a', 'gynae', 'feto'];
+            defaultCategoryIds.forEach(id => {
+                const textarea = document.getElementById(id);
+                if (textarea) {
+                    const names = textarea.value.split(/[\n,]+/).map(name => name.trim()).filter(name => name);
+                    settings.categories[id.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())] = names;
+                }
+            });
+            document.querySelectorAll('#custom-categories .custom-category-field').forEach(div => {
+                const nameInput = div.querySelector('.category-name');
+                const textarea = div.querySelector('textarea');
+                if (nameInput && textarea && nameInput.value.trim()) {
+                    const names = textarea.value.split(/[\n,]+/).map(name => name.trim()).filter(name => name);
+                    settings.customCategories.push({ name: nameInput.value.trim(), names: names });
+                }
+            });
+            return settings;
+        }
+
+        function saveSettingsToApp() { // Formerly saveSettings
+            const settings = getCurrentSettingsFromUI();
+            localStorage.setItem('nicuSettings', JSON.stringify(settings));
+            // Refresh UI that depends on settings
+            populateMetadataCheckboxGroups(); 
+            updateCombinedUnavailability();   
+            populateResidentDropdownsAndCheckboxes();  
+            showModal('Success', 'Settings saved and applied to app!');
+        }
+
+        function archiveCurrentSettings() { // Req 7
+            const settings = getCurrentSettingsFromUI();
+            const timestamp = new Date().toISOString();
+            localStorage.setItem(`nicuSettingsSnapshot_${timestamp}`, JSON.stringify(settings));
+            showModal('Success', `Current settings archived: ${timestamp.replace('T', ' ').substring(0,19)}`);
+        }
+
+        function loadArchivedSettings() { // Req 7
+            const savedSettingsSnapshots = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('nicuSettingsSnapshot_')) {
+                    savedSettingsSnapshots.push({ key: key, display: `Snapshot from ${key.substring(21,40).replace('T',' ')}` });
+                }
+            }
+            if (savedSettingsSnapshots.length === 0) { showModal('Info', 'No archived settings found.'); return; }
+            savedSettingsSnapshots.sort((a,b) => b.key.localeCompare(a.key)); // Newest first
+
+            const modalBody = document.getElementById('modal-body');
+            modalBody.innerHTML = `<p class="mb-3 text-sm text-gray-600">Select settings snapshot to load:</p>
+                <select id="settings-snapshot-select" class="w-full p-2.5 border border-gray-300 rounded-md mb-4 focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
+                    ${savedSettingsSnapshots.map(s => `<option value="${s.key}">${s.display}</option>`).join('')}
+                </select>`;
+            
+            showModal('Load Archived Settings', '', () => {
+                const selectedKey = document.getElementById('settings-snapshot-select').value;
+                if (!selectedKey) return;
+                const settingsData = JSON.parse(localStorage.getItem(selectedKey));
+                applySettingsToUI(settingsData); // Apply to UI textareas
+                saveSettingsToApp(); // Save as current main settings and refresh everything
+                showModal('Success', 'Archived settings loaded and applied!');
+            }, null, true);
+        }
+        
+        function loadSampleData() {
+            showModal('Load Sample Data', 'This will replace your current settings and save them. Continue?', () => {
+                const sampleSettings = {
+                    categories: {
+                        'Phase B': ['Dr. Sonia', 'Dr. Shanta', 'Dr. Tazim', 'Dr. Rumana', 'Dr. Upama', 'Dr. Maimuna', 'Dr. Afrina', 'Dr. Tishat', 'Dr. Zahid', 'Dr. Saikot', 'Dr. Ikbal', 'Dr. Kashem'],
+                        'Phase A': ['Dr. Hira', 'Dr. Zarin', 'Dr. Anwara', 'Dr. Yeasmin', 'Dr. Tamanna', 'Dr. Akhteruzzaman', 'Dr. Raisul', 'Dr. Tamanna(FCPS)', 'Dr. Tahera', 'Dr. Rehana'],
+                        'Gynae': ['Dr. Sabrina(Gynae)', 'Dr. Aimun (Gynae)', 'Dr. Sharmin (Gynae)', 'Dr. Tahmina (Gynae)'],
+                        'Feto': ['Dr. Farjana', 'Dr. Karishma', 'Dr. Nusrat', 'Dr. Ram', 'Dr. Trisha', 'Dr. Zubayra']
+                    },
+                    customCategories: [{ name: "Fellows", names: ["Dr. Fellow A", "Dr. Fellow B"] }]
+                };
+                applySettingsToUI(sampleSettings);
+                saveSettingsToApp(); // Save as current main settings
+                showModal('Success', 'Sample data loaded and applied! Settings have been saved.');
+            }, null, true);
+        }
+        
+        function resetSettings() {
+            showModal('Reset Settings', 'This will clear all resident names and custom categories, and save. Are you sure?', () => {
+                document.querySelectorAll('#settings textarea').forEach(textarea => textarea.value = '');
+                document.getElementById('custom-categories').innerHTML = '';
+                saveSettingsToApp(); // This will save the empty state and refresh UI
+                showModal('Success', 'Settings reset successfully!');
+            }, null, true);
+        }
+        
+        function generateDistribution() {
+            const distributionData = {
+                date: document.getElementById('date-field').value,
+                metadata: {},
+                activeBeds: Array.from(document.getElementById('active-beds-checkbox-group').querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value),
+                beds: { blueWardCabin: [], yellowRed: [] },
+                supervisors: { 
+                    blueWardCabin: Array.from(document.getElementById('blue-ward-cabin-supervisors-checkbox-group').querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value),
+                    yellowRed: Array.from(document.getElementById('yellow-red-supervisors-checkbox-group').querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value)
+                }
+            };
+            
+            document.querySelectorAll('.metadata-checkbox-group').forEach(groupContainer => {
+                const field = groupContainer.dataset.field;
+                distributionData.metadata[field] = Array.from(groupContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+            });
+            
+            document.querySelectorAll('#blue-ward-cabin-container .bed-card').forEach(card => {
+                distributionData.beds.blueWardCabin.push({
+                    bed: card.dataset.bedName,
+                    assignedDoctor: card.querySelector('.assigned-doctor').value,
+                    todaysDoctors: Array.from(card.querySelectorAll('.todays-doctors-checkbox-group input[type="checkbox"]:checked')).map(cb => cb.value)
+                });
+            });
+            document.querySelectorAll('#yellow-red-container .bed-card').forEach(card => {
+                distributionData.beds.yellowRed.push({
+                    bed: card.dataset.bedName,
+                    assignedDoctor: card.querySelector('.assigned-doctor').value,
+                    todaysDoctors: Array.from(card.querySelectorAll('.todays-doctors-checkbox-group input[type="checkbox"]:checked')).map(cb => cb.value)
+                });
+            });
+            
+            localStorage.setItem('currentDistribution', JSON.stringify(distributionData));
+            generateFormattedOutput(distributionData);
+            document.getElementById('output-section').classList.remove('hidden');
+            showModal('Generated!', 'Distribution has been generated.');
+        }
+        
+        function generateFormattedOutput(data) {
+            const dateString = data.date; // Should be YYYY-MM-DD
+            let dateObj;
+            if (dateString && dateString.includes('-')) { // Basic check for YYYY-MM-DD format
+                const parts = dateString.split('-');
+                dateObj = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2])); // Use UTC to avoid timezone shifts
+            } else {
+                dateObj = new Date(); // Fallback, should not happen if date is always set
+            }
+
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const dayName = days[dateObj.getUTCDay()];
+            const formattedDate = `${dateObj.getUTCDate()}/${dateObj.getUTCMonth() + 1}/${dateObj.getUTCFullYear()}`;
+            let output = `Bed distribution (${formattedDate}) ${dayName}\n\n(Doctors within brackets are assigned. Today's doctors are listed per bed. Assigned doctors: get updates from follow-up doctors.)\n\n`;
+            
+            const metadataOrder = [
+                'post-duty', '24-hour-duty', 'emergency-duty', 'cabin-block-duty', 'post-duty-cabin-block', 
+                'post-anti-discrimination-duty', 'on-leave-today', 'sick-leave', 'opd',
+                'training-workshop', 'departmental-work', 'infection-control', 
+                'pnr', 'ot', 'new-patients', 'new-case-presenter', 'referral'
+            ];
+
+            metadataOrder.forEach(key => {
+                const labelElement = document.querySelector(`.metadata-checkbox-group[data-field="${key}"]`)?.parentElement.querySelector('label.block');
+                let labelText = key.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                if (labelElement) { // Try to get the exact label text from HTML
+                    labelText = labelElement.textContent;
+                }
+
+                if (data.metadata[key] && data.metadata[key].length > 0) {
+                    output += `#${labelText}: ${data.metadata[key].join(', ')}\n`;
+                } else {
+                    output += `#${labelText}: \n`; 
+                }
+            });
+            output += "\nNICU Bed distribution:\n\n";
+
+            const formatBedSectionOutput = (title, bedDataKey, supervisors) => {
+                const sectionBedDefinitions = ALL_BED_DEFINITIONS.filter(bd => 
+                    (bedDataKey === 'blueWardCabin' && bd.category === 'blue-ward-cabin') ||
+                    (bedDataKey === 'yellowRed' && bd.category === 'yellow-red')
+                );
+
+                const activeBedsForSection = data.beds[bedDataKey] || [];
+                const orderedBedsData = [];
+                sectionBedDefinitions.forEach(bedDef => {
+                    const foundBedData = activeBedsForSection.find(b => b.bed === bedDef.name);
+                    if (foundBedData) {
+                        orderedBedsData.push(foundBedData);
+                    }
+                });
+
+                let sectionOutput = `#${title}\n`;
+                if (supervisors.length > 0) {
+                    sectionOutput += supervisors.join('\n') + '\n'; 
+                }
+                
+                const uniqueTodaysDoctorsOverall = [...new Set(orderedBedsData.flatMap(bed => bed.todaysDoctors))];
+                if (uniqueTodaysDoctorsOverall.length > 0) {
+                     sectionOutput += `Phase A- ${uniqueTodaysDoctorsOverall.join(', ')}\n`;
+                }
+                sectionOutput += '\n';
+
+                orderedBedsData.forEach(bed => {
+                    if (bed.assignedDoctor || bed.todaysDoctors.length > 0) {
+                        sectionOutput += `${bed.bed}: (${bed.assignedDoctor || 'N/A'})`;
+                        if (bed.todaysDoctors.length > 0) {
+                            sectionOutput += ` ${bed.todaysDoctors.join(', ')}`;
+                        }
+                        sectionOutput += '\n';
+                    }
+                });
+                return sectionOutput + '\n';
+            };
+            output += formatBedSectionOutput('Blue, Ward, Cabin', 'blueWardCabin', data.supervisors.blueWardCabin);
+            output += formatBedSectionOutput('Yellow, Red', 'yellowRed', data.supervisors.yellowRed);
+            
+            output += `(In case of any OT in SSH, OT doctor will attend after communicating with MOM. MOM will arrange replacement.)\n`;
+            document.getElementById('output-textarea').value = output;
+        }
+        
+        function copyOutputToClipboard() {
+            const outputTextarea = document.getElementById('output-textarea');
+            if (!outputTextarea.value) {
+                showModal('Info', 'Nothing to copy.'); return;
+            }
+            outputTextarea.select();
+            outputTextarea.setSelectionRange(0, 99999); 
+            try {
+                document.execCommand('copy');
+                showModal('Success', 'Output copied to clipboard!');
+            } catch (err) {
+                showModal('Error', 'Failed to copy.'); console.error('Copy failed:', err);
+            }
+            window.getSelection().removeAllRanges();
+        }
+        
+        function saveDistribution() {
+            const currentDistribution = localStorage.getItem('currentDistribution');
+            if (!currentDistribution) {
+                showModal('Error', 'No distribution to save. Generate first.'); return;
+            }
+            const timestamp = new Date().toISOString();
+            const distributionData = JSON.parse(currentDistribution);
+            // Ensure the key includes the distribution's specific date for easier lookup
+            const keyDate = distributionData.date || new Date().toISOString().substring(0,10);
+            localStorage.setItem(`nicuDistribution_${keyDate}_${timestamp}`, currentDistribution);
+            showModal('Success', `Distribution saved for ${keyDate} at ${timestamp.replace('T', ' ').substring(11,19)}`);
+        }
+
+        function loadPreviousDayAssignments() { // Req 11
+            const currentDateStr = document.getElementById('date-field').value;
+            if (!currentDateStr) {
+                showModal("Error", "Please set a current date first.");
+                return;
+            }
+            const currentDate = new Date(currentDateStr + "T00:00:00Z"); // Treat as UTC
+            currentDate.setUTCDate(currentDate.getUTCDate() - 1); // Go to previous day
+            const previousDateStr = currentDate.toISOString().substring(0, 10);
+
+            const previousDayDistributions = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                // Match keys that start with nicuDistribution_ and contain the previousDateStr
+                if (key.startsWith('nicuDistribution_') && key.includes(`_${previousDateStr}_`)) {
+                     try {
+                        const distData = JSON.parse(localStorage.getItem(key));
+                        // Double check the date inside the data too
+                        if (distData.date === previousDateStr) {
+                           previousDayDistributions.push({ key: key, timestamp: key.substring(key.lastIndexOf('_') + 1) });
+                        }
+                    } catch (e) { console.error("Error parsing saved distribution for previous day:", key, e); }
+                }
+            }
+
+            if (previousDayDistributions.length === 0) {
+                showModal('Info', `No saved distributions found for the previous day (${previousDateStr}).`);
+                return;
+            }
+            // Sort to get the latest one from the previous day
+            previousDayDistributions.sort((a, b) => b.timestamp.localeCompare(a.timestamp));
+            
+            const latestPreviousDayKey = previousDayDistributions[0].key;
+            const distributionData = JSON.parse(localStorage.getItem(latestPreviousDayKey));
+            
+            // Load this distribution, but keep the current UI date
+            // The loadDistributionByKey function will handle applying data
+            loadDistributionByKey(latestPreviousDayKey, true); // true to indicate it's a previous day load
+            showModal('Previous Day Loaded', `Loaded assignments from ${previousDateStr}. The date field remains as today. Please review and generate for today's date.`);
+        }
+        
+        function loadDistributionByKey(key, isPreviousDayLoad = false) {
+            const distributionData = JSON.parse(localStorage.getItem(key));
+            if (!distributionData) {
+                showModal("Error", "Could not load selected distribution.");
+                return;
+            }
+
+            // If it's not a previous day load, set the date field from the loaded data.
+            // If it IS a previous day load, the date field STAYS AS IS.
+            if (!isPreviousDayLoad) {
+                document.getElementById('date-field').value = distributionData.date;
+            }
+            
+            const activeBedsGroup = document.getElementById('active-beds-checkbox-group');
+            activeBedsGroup.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+            if (distributionData.activeBeds) {
+                distributionData.activeBeds.forEach(bedName => {
+                    const checkbox = activeBedsGroup.querySelector(`input[type="checkbox"][value="${CSS.escape(bedName)}"]`);
+                    if (checkbox) checkbox.checked = true;
+                });
+            }
+            renderActiveBedCards(); // Creates cards, calls populateResidentDropdownsAndCheckboxes
+
+            document.querySelectorAll('.metadata-checkbox-group').forEach(groupContainer => {
+                const field = groupContainer.dataset.field;
+                groupContainer.querySelectorAll('input[type="checkbox"]').forEach(checkbox => checkbox.checked = false); 
+                if (distributionData.metadata[field]) {
+                    distributionData.metadata[field].forEach(name => {
+                        const checkbox = groupContainer.querySelector(`input[type="checkbox"][value="${CSS.escape(name)}"]`);
+                        if (checkbox) checkbox.checked = true;
+                    });
+                }
+                updateSelectedNamesBox(groupContainer);
+            });
+            
+            updateCombinedUnavailability(); 
+            populateMetadataCheckboxGroups(); // Apply primary unavailability disabling
+            populateResidentDropdownsAndCheckboxes(); // Re-populate ALL based on new metadata
+
+            const loadBedCardAssignments = (containerId, bedDataArray) => {
+                 document.querySelectorAll(`#${containerId} .bed-card`).forEach(card => {
+                    const bedName = card.dataset.bedName;
+                    const bedData = bedDataArray.find(b => b.bed === bedName);
+                    if (bedData) {
+                        card.querySelector('.assigned-doctor').value = bedData.assignedDoctor || "";
+                        
+                        const todaysCheckboxes = card.querySelectorAll('.todays-doctors-checkbox-group input[type="checkbox"]');
+                        todaysCheckboxes.forEach(cb => cb.checked = false);
+                        if (bedData.todaysDoctors) {
+                            bedData.todaysDoctors.forEach(name => {
+                                const checkbox = card.querySelector(`.todays-doctors-checkbox-group input[type="checkbox"][value="${CSS.escape(name)}"]`);
+                                // Check if checkbox exists and is not disabled by new availability rules
+                                if (checkbox && !checkbox.disabled) checkbox.checked = true;
+                            });
+                        }
+                        updateSelectedTodaysDoctorsInBox(card);
+                    }
+                });
+            };
+            loadBedCardAssignments('blue-ward-cabin-container', distributionData.beds.blueWardCabin || []);
+            loadBedCardAssignments('yellow-red-container', distributionData.beds.yellowRed || []);
+
+            const loadSupervisorCheckboxes = (groupId, supervisorArray) => {
+                const groupElement = document.getElementById(groupId);
+                if (!groupElement) return;
+                groupElement.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+                if (supervisorArray) {
+                    supervisorArray.forEach(name => {
+                        const checkbox = groupElement.querySelector(`input[type="checkbox"][value="${CSS.escape(name)}"]`);
+                         if (checkbox && !checkbox.disabled) checkbox.checked = true;
+                    });
+                }
+            };
+            loadSupervisorCheckboxes('blue-ward-cabin-supervisors-checkbox-group', distributionData.supervisors.blueWardCabin);
+            loadSupervisorCheckboxes('yellow-red-supervisors-checkbox-group', distributionData.supervisors.yellowRed || []);
+
+            localStorage.setItem('currentDistribution', JSON.stringify(distributionData)); // Set as current working copy
+            generateFormattedOutput(distributionData); // Generate output based on loaded data
+            document.getElementById('output-section').classList.remove('hidden');
+        }
+
+
+        function loadDistribution() {
+            const savedDistributions = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('nicuDistribution_')) {
+                    try {
+                        const distData = JSON.parse(localStorage.getItem(key));
+                        const keyParts = key.split('_'); // Expects format nicuDistribution_DATE_TIMESTAMP
+                        const displayDate = keyParts.length > 2 ? keyParts[1] : distData.date;
+                        const displayTimestamp = keyParts.length > 2 ? keyParts[2].substring(0,19).replace('T',' ') : 'Unknown time';
+                        savedDistributions.push({ key: key, date: distData.date, display: `${displayDate} (${displayTimestamp})` });
+                    } catch (e) { console.error("Error parsing saved distribution:", key, e); }
+                }
+            }
+            if (savedDistributions.length === 0) { showModal('Info', 'No saved distributions.'); return; }
+            savedDistributions.sort((a,b) => b.key.localeCompare(a.key));
+
+            const modalBody = document.getElementById('modal-body');
+            modalBody.innerHTML = `<p class="mb-3 text-sm text-gray-600">Select distribution to load:</p>
+                <select id="distribution-select" class="w-full p-2.5 border border-gray-300 rounded-md mb-4 focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
+                    ${savedDistributions.map(dist => `<option value="${dist.key}">${dist.display}</option>`).join('')}
+                </select>`;
+            
+            showModal('Load Saved Distribution', '', () => {
+                const selectedKey = document.getElementById('distribution-select').value;
+                if (!selectedKey) return;
+                loadDistributionByKey(selectedKey, false); // false = not a previous day load
+                showModal('Success', 'Distribution loaded!');
+            }, null, true);
+        }
+        
+        function clearAllData() {
+            showModal('Clear All Data', 'Clear current assignments, metadata, and output? Settings remain. Continue?', () => {
+                document.querySelectorAll('.metadata-checkbox-group input[type="checkbox"]').forEach(cb => cb.checked = false);
+                document.querySelectorAll('.metadata-checkbox-group').forEach(updateSelectedNamesBox);
+
+                const activeBedsGroup = document.getElementById('active-beds-checkbox-group');
+                activeBedsGroup.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+                renderActiveBedCards(); // Clears cards
+
+                document.querySelectorAll('.assigned-doctor').forEach(select => select.selectedIndex = 0);
+                document.querySelectorAll('.todays-doctors-checkbox-group input[type="checkbox"]').forEach(cb => cb.checked = false);
+                document.querySelectorAll('.selected-todays-doctors-box').forEach(box => box.innerHTML = '');
+                
+                ['blue-ward-cabin-supervisors-checkbox-group', 'yellow-red-supervisors-checkbox-group'].forEach(id => {
+                    const group = document.getElementById(id);
+                    if (group) group.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+                });
+
+                if (!document.getElementById('manual-date').checked) {
+                    document.getElementById('date-field').value = new Date().toISOString().substr(0, 10);
+                }
+                updateCombinedUnavailability(); 
+                populateMetadataCheckboxGroups(); 
+                populateResidentDropdownsAndCheckboxes();    
+                document.getElementById('output-textarea').value = '';
+                document.getElementById('output-section').classList.add('hidden');
+                localStorage.removeItem('currentDistribution');
+                showModal('Success', 'Current distribution data cleared!');
+            }, null, true);
+        }
+        
+        function showModal(title, bodyText, confirmCallback = null, customBodyContent = null, showCancel = false) {
+            const modal = document.getElementById('modal');
+            document.getElementById('modal-title').textContent = title;
+            const modalBodyEl = document.getElementById('modal-body');
+            
+            if (customBodyContent !== null && typeof customBodyContent === 'string') {
+                 modalBodyEl.innerHTML = customBodyContent;
+            } else if (customBodyContent !== null && customBodyContent instanceof HTMLElement) {
+                modalBodyEl.innerHTML = ''; 
+                modalBodyEl.appendChild(customBodyContent);
+            } else {
+                modalBodyEl.textContent = bodyText;
+            }
+            
+            const confirmBtn = document.getElementById('confirm-modal');
+            const cancelBtn = document.getElementById('cancel-modal');
+            const newConfirmBtn = confirmBtn.cloneNode(true); 
+            confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+
+            newConfirmBtn.onclick = () => {
+                if (confirmCallback) confirmCallback();
+                modal.classList.add('hidden');
+            };
+            cancelBtn.classList.toggle('hidden', !showCancel);
+            modal.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
