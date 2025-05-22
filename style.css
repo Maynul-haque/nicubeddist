@@ -1,0 +1,173 @@
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f0f4f8;
+}
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.tab-btn.active {
+    background-color: #2563eb;
+    color: white;
+    border-bottom-color: transparent;
+}
+.tab-btn {
+    background-color: #e5e7eb;
+    color: #374151;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+.tab-btn:hover { background-color: #d1d5db; }
+.bed-card {
+    transition: all 0.3s ease;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+}
+.bed-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px -5px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+}
+textarea { resize: none; border-radius: 0.375rem; }
+@media (max-width: 768px) {
+    .responsive-grid { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+    .header-title { font-size: 1.875rem; }
+}
+
+/* Styling for checkbox groups (metadata, active beds, supervisors, today's doctors) */
+.scrollable-checkbox-group {
+    min-height: 100px;
+    max-height: 150px; 
+    overflow-y: auto;
+    border: 1px solid #d1d5db; 
+    border-radius: 0.375rem; 
+    padding: 0.5rem;
+    background-color: #fff;
+}
+/* Thicker Scrollbars */
+.scrollable-checkbox-group::-webkit-scrollbar { width: 12px; }
+.scrollable-checkbox-group::-webkit-scrollbar-track { background: #e5e7eb; border-radius: 6px; }
+.scrollable-checkbox-group::-webkit-scrollbar-thumb { background-color: #2563eb; border-radius: 6px; }
+.scrollable-checkbox-group {
+    scrollbar-width: auto; /* For Firefox, 'auto' or 'thin' */
+    scrollbar-color: #2563eb #e5e7eb;
+}
+
+.scrollable-checkbox-group label {
+    display: block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+.scrollable-checkbox-group label:hover:not(.disabled-option) { /* Allow hover only if not disabled */
+    background-color: #f0f4f8; 
+}
+.scrollable-checkbox-group input[type="checkbox"] {
+    margin-right: 0.5rem;
+    accent-color: #2563eb; 
+}
+.scrollable-checkbox-group .optgroup-label {
+    font-weight: 600;
+    color: #4b5563; 
+    margin-top: 0.5rem;
+    margin-bottom: 0.25rem;
+    padding-left: 0.25rem;
+}
+/* Styling for unavailable names at the bottom (Req 13) */
+.scrollable-checkbox-group label.disabled-option {
+    color: #9ca3af; /* gray-400 */
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+.scrollable-checkbox-group label.disabled-option:hover {
+     background-color: transparent; /* No hover effect for disabled */
+}
+ .scrollable-checkbox-group input[type="checkbox"]:disabled {
+    cursor: not-allowed;
+}
+
+
+.selected-names-box, .selected-todays-doctors-box {
+    min-height: 60px; border: 1px solid #d1d5db; border-radius: 0.375rem;
+    padding: 0.75rem; margin-bottom: 0.75rem; background-color: #f9fafb;
+    display: flex; flex-wrap: wrap; gap: 0.5rem;
+    align-items: center; /* Center items if no selections (for "None selected") */
+    justify-content: center; /* Center items if no selections */
+    color: #9ca3af; /* Grey out the "None selected" text */
+    font-style: italic; /* Italicize "None selected" */
+}
+.selected-todays-doctors-box { min-height: 40px; } /* Slightly smaller for bed cards */
+
+.selected-name-tag {
+    display: inline-flex; align-items: center; background-color: #10b981; color: white;
+    padding: 0.375rem 0.75rem; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 500;
+    cursor: pointer; /* Indicate clickable for deselect */
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+.selected-name-tag:hover {
+    background-color: #0d9488; /* Darker green */
+    transform: translateY(-1px);
+}
+/* Specific color for today's doctors in bed card */
+.selected-todays-doctors-box .selected-name-tag {
+    background-color: #0ea5e9; /* Tailwind sky-500 */
+}
+.selected-todays-doctors-box .selected-name-tag:hover {
+    background-color: #0284c7; /* Darker sky-600 */
+}
+
+.output-textarea {
+    min-height: 350px; font-family: 'Courier New', Courier, monospace; white-space: pre-wrap;
+    background-color: #f9fafb; border: 1px solid #d1d5db; border-radius: 0.375rem;
+}
+.category-supervisor-section { /* Renamed and adjusted for supervisor checkbox groups */
+    background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 0.75rem;
+    padding: 1.5rem; margin-top: 1.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -1px rgba(0,0,0,0.04);
+}
+.action-btn {
+    padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-weight: 500;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    display: inline-flex; align-items: center; gap: 0.5rem;
+}
+.action-btn:hover { transform: translateY(-1px); }
+.custom-category-field {
+    background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 0.5rem;
+    padding: 1rem; margin-bottom: 1rem;
+}
+#modal { background-color: rgba(0,0,0,0.6); }
+#modal-content-box {
+     background-color: white; border-radius: 0.75rem; padding: 1.5rem;
+     max-width: 500px; width: 90%;
+     box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* Specific for today's doctors in bed card */
+.todays-doctors-checkbox-group { 
+     min-height: 100px; max-height: 112px; /* h-28 */
+}
+/* Active beds optgroup styling */
+#active-beds-checkbox-group .optgroup-label { /* Ensure optgroup labels in checkbox groups are styled */
+    font-weight: bold;
+    font-style: italic;
+    color: #1e3a8a; /* Tailwind blue-800 */
+    margin-top: 0.75rem;
+    margin-bottom: 0.25rem;
+}
+.clear-bed-btn {
+    background-color: #ef4444; /* red-500 */
+    color: white;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    border-radius: 0.25rem;
+    margin-top: 0.5rem;
+}
+.clear-bed-btn:hover {
+    background-color: #dc2626; /* red-600 */
+}
+
+/* Styles for initially hidden metadata categories (Req 8) */
+[data-field="emergency-duty"].metadata-field-container,
+[data-field="post-anti-discrimination-duty"].metadata-field-container,
+[data-field="training-workshop"].metadata-field-container,
+[data-field="departmental-work"].metadata-field-container {
+    display: none;
+}
