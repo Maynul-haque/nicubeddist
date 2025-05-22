@@ -97,13 +97,31 @@
             min-height: 60px; border: 1px solid #d1d5db; border-radius: 0.375rem;
             padding: 0.75rem; margin-bottom: 0.75rem; background-color: #f9fafb;
             display: flex; flex-wrap: wrap; gap: 0.5rem;
+            align-items: center; /* Center items if no selections (for "None selected") */
+            justify-content: center; /* Center items if no selections */
+            color: #9ca3af; /* Grey out the "None selected" text */
+            font-style: italic; /* Italicize "None selected" */
         }
-        .selected-todays-doctors-box { min-height: 40px; }
+        .selected-todays-doctors-box { min-height: 40px; } /* Slightly smaller for bed cards */
 
         .selected-name-tag {
             display: inline-flex; align-items: center; background-color: #10b981; color: white;
             padding: 0.375rem 0.75rem; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 500;
+            cursor: pointer; /* Indicate clickable for deselect */
+            transition: background-color 0.2s ease, transform 0.1s ease;
         }
+        .selected-name-tag:hover {
+            background-color: #0d9488; /* Darker green */
+            transform: translateY(-1px);
+        }
+        /* Specific color for today's doctors in bed card */
+        .selected-todays-doctors-box .selected-name-tag {
+            background-color: #0ea5e9; /* Tailwind sky-500 */
+        }
+        .selected-todays-doctors-box .selected-name-tag:hover {
+            background-color: #0284c7; /* Darker sky-600 */
+        }
+
         .output-textarea {
             min-height: 350px; font-family: 'Courier New', Courier, monospace; white-space: pre-wrap;
             background-color: #f9fafb; border: 1px solid #d1d5db; border-radius: 0.375rem;
@@ -155,6 +173,14 @@
             background-color: #dc2626; /* red-600 */
         }
 
+        /* Styles for initially hidden metadata categories (Req 8) */
+        [data-field="emergency-duty"].metadata-field-container,
+        [data-field="post-anti-discrimination-duty"].metadata-field-container,
+        [data-field="training-workshop"].metadata-field-container,
+        [data-field="departmental-work"].metadata-field-container {
+            display: none;
+        }
+
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -199,90 +225,115 @@
                     <i class="fas fa-info-circle mr-3 text-blue-600"></i>Metadata
                 </h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
-                    <div>
+                    <div class="metadata-field-container" data-field="post-duty">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Post Duty</label>
                         <div class="selected-names-box" data-field="post-duty"></div>
                         <div class="scrollable-checkbox-group metadata-checkbox-group" data-field="post-duty"></div>
                     </div>
-                    <div>
+                    <div class="metadata-field-container" data-field="24-hour-duty">
                         <label class="block text-sm font-medium text-gray-700 mb-1">24 Hour Duty</label>
                         <div class="selected-names-box" data-field="24-hour-duty"></div>
                         <div class="scrollable-checkbox-group metadata-checkbox-group" data-field="24-hour-duty"></div>
                     </div>
-                    <div>
+                    <div class="metadata-field-container" data-field="emergency-duty">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Emergency Duty</label>
                         <div class="selected-names-box" data-field="emergency-duty"></div>
                         <div class="scrollable-checkbox-group metadata-checkbox-group" data-field="emergency-duty"></div>
                     </div>
-                    <div>
+                    <div class="metadata-field-container" data-field="cabin-block-duty">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Cabin Block Duty</label>
                         <div class="selected-names-box" data-field="cabin-block-duty"></div>
                         <div class="scrollable-checkbox-group metadata-checkbox-group" data-field="cabin-block-duty"></div>
                     </div>
-                    <div>
+                    <div class="metadata-field-container" data-field="post-duty-cabin-block">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Post-duty Cabin Block</label>
                         <div class="selected-names-box" data-field="post-duty-cabin-block"></div>
                         <div class="scrollable-checkbox-group metadata-checkbox-group" data-field="post-duty-cabin-block"></div>
                     </div>
-                    <div>
+                    <div class="metadata-field-container" data-field="post-anti-discrimination-duty">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Post Anti-discrimination Duty</label>
                         <div class="selected-names-box" data-field="post-anti-discrimination-duty"></div>
                         <div class="scrollable-checkbox-group metadata-checkbox-group" data-field="post-anti-discrimination-duty"></div>
                     </div>
-                    <div>
+                    <div class="metadata-field-container" data-field="on-leave-today">
                         <label class="block text-sm font-medium text-gray-700 mb-1">On Leave Today</label>
                         <div class="selected-names-box" data-field="on-leave-today"></div>
                         <div class="scrollable-checkbox-group metadata-checkbox-group" data-field="on-leave-today"></div>
                     </div>
-                    <div>
+                    <div class="metadata-field-container" data-field="sick-leave">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Sick Leave</label>
                         <div class="selected-names-box" data-field="sick-leave"></div>
                         <div class="scrollable-checkbox-group metadata-checkbox-group" data-field="sick-leave"></div>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">OPD</label> <!-- New OPD Category -->
+                    <div class="metadata-field-container" data-field="opd">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">OPD</label>
                         <div class="selected-names-box" data-field="opd"></div>
                         <div class="scrollable-checkbox-group metadata-checkbox-group" data-field="opd"></div>
                     </div>
-                    <div>
+                    <div class="metadata-field-container" data-field="training-workshop">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Training/Workshop</label>
                         <div class="selected-names-box" data-field="training-workshop"></div>
                         <div class="scrollable-checkbox-group metadata-checkbox-group" data-field="training-workshop"></div>
                     </div>
-                    <div>
+                    <div class="metadata-field-container" data-field="departmental-work">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Departmental Work</label>
                         <div class="selected-names-box" data-field="departmental-work"></div>
                         <div class="scrollable-checkbox-group metadata-checkbox-group" data-field="departmental-work"></div>
                     </div>
-                    <div>
+                    <div class="metadata-field-container" data-field="infection-control">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Infection Control</label>
                         <div class="selected-names-box" data-field="infection-control"></div>
                         <div class="scrollable-checkbox-group metadata-checkbox-group" data-field="infection-control"></div>
                     </div>
-                    <div>
+                    <div class="metadata-field-container" data-field="pnr">
                         <label class="block text-sm font-medium text-gray-700 mb-1">PNR</label>
                         <div class="selected-names-box" data-field="pnr"></div>
                         <div class="scrollable-checkbox-group metadata-checkbox-group" data-field="pnr"></div>
                     </div>
-                    <div>
+                    <div class="metadata-field-container" data-field="ot">
                         <label class="block text-sm font-medium text-gray-700 mb-1">OT</label>
                         <div class="selected-names-box" data-field="ot"></div>
                         <div class="scrollable-checkbox-group metadata-checkbox-group" data-field="ot"></div>
                     </div>
-                    <div>
+                    <div class="metadata-field-container" data-field="new-patients">
                         <label class="block text-sm font-medium text-gray-700 mb-1">New patients will be received by</label>
                         <div class="selected-names-box" data-field="new-patients"></div>
                         <div class="scrollable-checkbox-group metadata-checkbox-group" data-field="new-patients"></div>
                     </div>
-                    <div>
+                    <div class="metadata-field-container" data-field="new-case-presenter">
                         <label class="block text-sm font-medium text-gray-700 mb-1">New case presenter</label>
                         <div class="selected-names-box" data-field="new-case-presenter"></div>
                         <div class="scrollable-checkbox-group metadata-checkbox-group" data-field="new-case-presenter"></div>
                     </div>
-                    <div>
+                    <div class="metadata-field-container" data-field="referral">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Referral</label>
                         <div class="selected-names-box" data-field="referral"></div>
                         <div class="scrollable-checkbox-group metadata-checkbox-group" data-field="referral"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- New: Metadata Visibility Toggles (Req 8) -->
+            <div class="bg-white p-6 rounded-xl shadow-md mb-8">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-6 flex items-center">
+                    <i class="fas fa-eye mr-3 text-blue-600"></i>Toggle Metadata Visibility
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                        <input type="checkbox" id="toggle-emergency-duty" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                        <label for="toggle-emergency-duty" class="ml-2 text-sm text-gray-700">Show Emergency Duty</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" id="toggle-post-anti-discrimination-duty" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                        <label for="toggle-post-anti-discrimination-duty" class="ml-2 text-sm text-gray-700">Show Post Anti-discrimination Duty</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" id="toggle-training-workshop" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                        <label for="toggle-training-workshop" class="ml-2 text-sm text-gray-700">Show Training/Workshop</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" id="toggle-departmental-work" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                        <label for="toggle-departmental-work" class="ml-2 text-sm text-gray-700">Show Departmental Work</label>
                     </div>
                 </div>
             </div>
@@ -362,21 +413,72 @@
                 <div class="mb-8">
                     <h3 class="text-lg font-medium text-gray-700 mb-4">Default Categories</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div>
-                            <label for="phase-b" class="block text-sm font-medium text-gray-700 mb-1">Phase B</label>
-                            <textarea id="phase-b" class="w-full p-3 border border-gray-300 rounded-lg" rows="5" placeholder="Enter names, separated by commas or one per line"></textarea>
+                        <!-- Phase B Sub-categories (Req 2) -->
+                        <div class="col-span-full">
+                            <h4 class="block text-sm font-medium text-gray-700 mb-2 font-semibold">Phase B</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="phase-b-y5o" class="block text-xs font-medium text-gray-700 mb-1">Year 5 Old</label>
+                                    <textarea id="phase-b-y5o" class="w-full p-3 border border-gray-300 rounded-lg" rows="3" placeholder="Enter names, separated by commas or one per line"></textarea>
+                                </div>
+                                <div>
+                                    <label for="phase-b-y5n" class="block text-xs font-medium text-gray-700 mb-1">Year 5 New</label>
+                                    <textarea id="phase-b-y5n" class="w-full p-3 border border-gray-300 rounded-lg" rows="3" placeholder="Enter names, separated by commas or one per line"></textarea>
+                                </div>
+                                <div>
+                                    <label for="phase-b-y4o" class="block text-xs font-medium text-gray-700 mb-1">Year 4 Old</label>
+                                    <textarea id="phase-b-y4o" class="w-full p-3 border border-gray-300 rounded-lg" rows="3" placeholder="Enter names, separated by commas or one per line"></textarea>
+                                </div>
+                                <div>
+                                    <label for="phase-b-y4n" class="block text-xs font-medium text-gray-700 mb-1">Year 4 New</label>
+                                    <textarea id="phase-b-y4n" class="w-full p-3 border border-gray-300 rounded-lg" rows="3" placeholder="Enter names, separated by commas or one per line"></textarea>
+                                </div>
+                                <div>
+                                    <label for="phase-b-y3o" class="block text-xs font-medium text-gray-700 mb-1">Year 3 Old</label>
+                                    <textarea id="phase-b-y3o" class="w-full p-3 border border-gray-300 rounded-lg" rows="3" placeholder="Enter names, separated by commas or one per line"></textarea>
+                                </div>
+                                <div>
+                                    <label for="phase-b-y3n" class="block text-xs font-medium text-gray-700 mb-1">Year 3 New</label>
+                                    <textarea id="phase-b-y3n" class="w-full p-3 border border-gray-300 rounded-lg" rows="3" placeholder="Enter names, separated by commas or one per line"></textarea>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <label for="phase-a" class="block text-sm font-medium text-gray-700 mb-1">Phase A</label>
-                            <textarea id="phase-a" class="w-full p-3 border border-gray-300 rounded-lg" rows="5" placeholder="Enter names, separated by commas or one per line"></textarea>
+                        <!-- Phase A Sub-categories (Req 3) -->
+                        <div class="col-span-full">
+                            <h4 class="block text-sm font-medium text-gray-700 mb-2 font-semibold">Phase A</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="phase-a-old" class="block text-xs font-medium text-gray-700 mb-1">Old</label>
+                                    <textarea id="phase-a-old" class="w-full p-3 border border-gray-300 rounded-lg" rows="3" placeholder="Enter names, separated by commas or one per line"></textarea>
+                                </div>
+                                <div>
+                                    <label for="phase-a-new" class="block text-xs font-medium text-gray-700 mb-1">New</label>
+                                    <textarea id="phase-a-new" class="w-full p-3 border border-gray-300 rounded-lg" rows="3" placeholder="Enter names, separated by commas or one per line"></textarea>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <label for="gynae" class="block text-sm font-medium text-gray-700 mb-1">Gynae</label>
-                            <textarea id="gynae" class="w-full p-3 border border-gray-300 rounded-lg" rows="5" placeholder="Enter names, separated by commas or one per line"></textarea>
-                        </div>
-                        <div>
-                            <label for="feto" class="block text-sm font-medium text-gray-700 mb-1">Feto</label>
-                            <textarea id="feto" class="w-full p-3 border border-gray-300 rounded-lg" rows="5" placeholder="Enter names, separated by commas or one per line"></textarea>
+                        <!-- Other Default Categories (Including new ones - Req 1) -->
+                        <div class="col-span-full md:col-span-2 lg:col-span-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <div>
+                                <label for="gynae" class="block text-sm font-medium text-gray-700 mb-1">Gynae</label>
+                                <textarea id="gynae" class="w-full p-3 border border-gray-300 rounded-lg" rows="5" placeholder="Enter names, separated by commas or one per line"></textarea>
+                            </div>
+                            <div>
+                                <label for="feto" class="block text-sm font-medium text-gray-700 mb-1">Feto</label>
+                                <textarea id="feto" class="w-full p-3 border border-gray-300 rounded-lg" rows="5" placeholder="Enter names, separated by commas or one per line"></textarea>
+                            </div>
+                            <div>
+                                <label for="gp" class="block text-sm font-medium text-gray-700 mb-1">GP</label>
+                                <textarea id="gp" class="w-full p-3 border border-gray-300 rounded-lg" rows="5" placeholder="Enter names, separated by commas or one per line"></textarea>
+                            </div>
+                            <div>
+                                <label for="pedisurgery" class="block text-sm font-medium text-gray-700 mb-1">Pedisurgery</label>
+                                <textarea id="pedisurgery" class="w-full p-3 border border-gray-300 rounded-lg" rows="5" placeholder="Enter names, separated by commas or one per line"></textarea>
+                            </div>
+                            <div>
+                                <label for="fcps" class="block text-sm font-medium text-gray-700 mb-1">FCPS</label>
+                                <textarea id="fcps" class="w-full p-3 border border-gray-300 rounded-lg" rows="5" placeholder="Enter names, separated by commas or one per line"></textarea>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -445,6 +547,32 @@
             { name: 'Red 20', category: 'yellow-red', group: 'Red Beds' }
         ];
 
+        // Global map to store resident's full category (e.g., 'Phase B - Year 5 Old')
+        let residentToFullCategoryMap = new Map();
+
+        // Define a precise order for categories for sorting selected names (Req 6)
+        const categoryOrderForSorting = [
+            "Phase B - Year 5 Old", "Phase B - Year 5 New",
+            "Phase B - Year 4 Old", "Phase B - Year 4 New",
+            "Phase B - Year 3 Old", "Phase B - Year 3 New",
+            "Phase A - Old", "Phase A - New",
+            "Gynae", "Feto", "GP", "Pedisurgery", "FCPS" // New categories added here
+        ];
+
+        // Metadata fields that, if selected, make a resident unavailable for *most other* duties (highest priority - Req 7)
+        const strictExclusionFields = new Set([
+            'post-duty', 'on-leave-today', 'sick-leave', 'opd', 'pnr', 'ot'
+        ]);
+
+        // Metadata fields that, if selected, make a resident unavailable for *bed assignments* and *new patients*
+        const bedAndNewPatientExclusionFields = new Set([
+            ...strictExclusionFields, // includes post-duty, on-leave-today, sick-leave, opd, pnr, ot
+            'emergency-duty', 'cabin-block-duty', 'post-duty-cabin-block',
+            'post-anti-discrimination-duty', 'training-workshop', 'departmental-work',
+            'infection-control' // Infection control also excludes from beds/new patients
+        ]);
+
+
         document.addEventListener('DOMContentLoaded', function() {
             initApp();
             
@@ -479,30 +607,13 @@
             document.getElementById('active-beds-checkbox-group').addEventListener('change', (event) => { // Listen to group for delegation
                 if (event.target.type === 'checkbox') {
                     renderActiveBedCards();
-                    // populateResidentDropdowns(); // Called within renderActiveBedCards
                 }
             });
-            renderActiveBedCards(); 
+            renderActiveBedCards(); // Initial render of bed cards
         });
         
-        const unavailableResidents = new Set(); // Tracks residents unavailable for general duties/bed assignments
-        const primaryUnavailabilityFields = [ // Fields that make a resident generally unavailable
-            'post-duty', 'on-leave-today', 'sick-leave', 'opd',
-            // These were in unavailabilityFields but might not be primary for *all* other tasks
-            'emergency-duty', 'cabin-block-duty', 'post-duty-cabin-block', 
-            'post-anti-discrimination-duty', 'training-workshop', 'departmental-work', 'pnr', 'ot'
-        ];
-        // Fields that contribute to the 'unavailableResidents' set for bed assignments
-        const bedAssignmentUnavailabilityFields = [
-            'post-duty', 'on-leave-today', 'sick-leave', 'opd',
-            'emergency-duty', 'cabin-block-duty', 'post-duty-cabin-block', 
-            'post-anti-discrimination-duty', 'training-workshop', 'departmental-work', 'pnr', 'ot'
-            // '24-hour-duty' might be informational rather than strict unavailability for all dropdowns
-            // 'infection-control' is special (Req 1)
-        ];
-        
         function initApp() {
-            loadSettingsFromLocalStorage(); // Loads main settings
+            loadSettingsFromLocalStorage(); // Loads main settings and populates residentToFullCategoryMap
             
             document.getElementById('save-settings-btn').addEventListener('click', saveSettingsToApp);
             document.getElementById('save-current-settings-btn').addEventListener('click', archiveCurrentSettings);
@@ -518,33 +629,91 @@
             document.getElementById('copy-output-btn').addEventListener('click', copyOutputToClipboard);
             document.getElementById('load-previous-day-btn').addEventListener('click', loadPreviousDayAssignments);
             
-            populateMetadataCheckboxGroups();
-            updateCombinedUnavailability(); 
-            populateResidentDropdownsAndCheckboxes(); 
+            // Metadata Visibility Toggles (Req 8)
+            const toggles = [
+                'emergency-duty', 'post-anti-discrimination-duty',
+                'training-workshop', 'departmental-work'
+            ];
+            toggles.forEach(fieldName => {
+                const checkbox = document.getElementById(`toggle-${fieldName}`);
+                const container = document.querySelector(`[data-field="${fieldName}"].metadata-field-container`);
+                if (checkbox && container) {
+                    checkbox.addEventListener('change', (event) => {
+                        container.style.display = event.target.checked ? 'block' : 'none';
+                        localStorage.setItem(`metadataVisibility_${fieldName}`, event.target.checked);
+                    });
+                    // Apply initial visibility from localStorage or default hidden
+                    const isVisible = localStorage.getItem(`metadataVisibility_${fieldName}`) === 'true'; // Default is false (hidden) if not in localStorage
+                    checkbox.checked = isVisible;
+                    container.style.display = isVisible ? 'block' : 'none';
+                }
+            });
+
+            populateMetadataCheckboxGroups(); // Initial population of all metadata checkboxes
+            populateResidentDropdownsAndCheckboxes(); // Initial population of all bed/supervisor dropdowns/checkboxes
         }
 
         function loadSettingsFromLocalStorage() {
              if (localStorage.getItem('nicuSettings')) {
                 const settings = JSON.parse(localStorage.getItem('nicuSettings'));
-                applySettingsToUI(settings);
+                applySettingsToUI(settings); // This also populates residentToFullCategoryMap
             }
         }
 
         function applySettingsToUI(settings) {
-            if (settings.categories) {
-                for (const [category, names] of Object.entries(settings.categories)) {
-                    const textarea = document.getElementById(category.toLowerCase().replace(/\s+/g, '-'));
-                    if (textarea) textarea.value = names.join('\n');
+            residentToFullCategoryMap.clear(); // Clear map before repopulating
+
+            // Default categories with sub-levels (for UI population)
+            const defaultCategoriesMap = {
+                'Phase B': {
+                    'Year 5 Old': 'phase-b-y5o', 'Year 5 New': 'phase-b-y5n',
+                    'Year 4 Old': 'phase-b-y4o', 'Year 4 New': 'phase-b-y4n',
+                    'Year 3 Old': 'phase-b-y3o', 'Year 3 New': 'phase-b-y3n'
+                },
+                'Phase A': {
+                    'Old': 'phase-a-old', 'New': 'phase-a-new'
+                },
+                'Gynae': 'gynae', 'Feto': 'feto',
+                'GP': 'gp', 'Pedisurgery': 'pedisurgery', 'FCPS': 'fcps'
+            };
+
+            for (const topCategory in defaultCategoriesMap) {
+                const subCategories = defaultCategoriesMap[topCategory];
+                if (typeof subCategories === 'object') { // Has sub-levels
+                    for (const subCatName in subCategories) {
+                        const id = subCategories[subCatName];
+                        const textarea = document.getElementById(id);
+                        const fullCategoryName = `${topCategory} - ${subCatName}`;
+                        if (textarea && settings.categories[fullCategoryName]) {
+                            textarea.value = settings.categories[fullCategoryName].join('\n');
+                            settings.categories[fullCategoryName].forEach(name => residentToFullCategoryMap.set(name, fullCategoryName));
+                        } else if (textarea) {
+                             textarea.value = ''; // Ensure it's cleared if no data
+                        }
+                    }
+                } else { // Single level category
+                    const id = subCategories;
+                    const textarea = document.getElementById(id);
+                    if (textarea && settings.categories[topCategory]) {
+                        textarea.value = settings.categories[topCategory].join('\n');
+                        settings.categories[topCategory].forEach(name => residentToFullCategoryMap.set(name, topCategory));
+                    } else if (textarea) {
+                        textarea.value = ''; // Ensure it's cleared if no data
+                    }
                 }
             }
+
             const customCategoriesContainer = document.getElementById('custom-categories');
-            customCategoriesContainer.innerHTML = ''; 
+            customCategoriesContainer.innerHTML = '';
             if (settings.customCategories) {
-                settings.customCategories.forEach(category => addCustomCategoryField(category.name, category.names.join('\n')));
+                settings.customCategories.forEach(category => {
+                    addCustomCategoryField(category.name, category.names.join('\n'));
+                    category.names.forEach(name => residentToFullCategoryMap.set(name, category.name));
+                });
             }
+
             // After applying settings, refresh dependent UI parts
             populateMetadataCheckboxGroups();
-            updateCombinedUnavailability();
             populateResidentDropdownsAndCheckboxes();
         }
 
@@ -647,7 +816,7 @@
                 </div>
                 <div class="mb-2">
                     <label class="block text-xs font-medium text-gray-600 mb-1">Selected for Today</label>
-                    <div class="selected-todays-doctors-box min-h-[40px] border border-gray-200 rounded-md p-2 bg-gray-50 flex flex-wrap gap-1"></div>
+                    <div class="selected-todays-doctors-box min-h-[40px] border border-gray-200 rounded-md p-2 bg-gray-50 flex flex-wrap gap-1">None selected</div>
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Assign Today's Doctors</label>
@@ -674,56 +843,31 @@
             const checkboxGroup = bedCardElement.querySelector('.todays-doctors-checkbox-group');
             if (!displayBox || !checkboxGroup) return;
 
+            const selectedNames = Array.from(checkboxGroup.querySelectorAll('input[type="checkbox"]:checked')).map(checkbox => checkbox.value);
+            const sortedNames = sortNamesByCategory(selectedNames); // Apply sorting (Req 5)
+
             displayBox.innerHTML = '';
-            checkboxGroup.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
-                const tag = document.createElement('span');
-                tag.className = 'selected-name-tag bg-sky-500';
-                tag.textContent = checkbox.value;
-                displayBox.appendChild(tag);
-            });
-        }
-
-        function getResidentAvailabilityStatus(residentName, currentField = null) {
-            const status = {
-                isStrictlyUnavailable: false, // For post-duty, on-leave, sick-leave, opd
-                isGenerallyUnavailable: false, // For bed assignments (includes primary + other duties)
-                isAvailableForInfectionControl: true,
-                isAvailableForNewPatients: true
-            };
-
-            const postDutySelections = getSelectedNamesFromMetadata('post-duty');
-            const onLeaveSelections = getSelectedNamesFromMetadata('on-leave-today');
-            const sickLeaveSelections = getSelectedNamesFromMetadata('sick-leave');
-            const opdSelections = getSelectedNamesFromMetadata('opd');
-
-            if (onLeaveSelections.has(residentName) || sickLeaveSelections.has(residentName)) {
-                status.isStrictlyUnavailable = true;
-                status.isGenerallyUnavailable = true;
-                status.isAvailableForInfectionControl = false; // Cannot do infection control if on leave/sick
-                status.isAvailableForNewPatients = false;
-                return status; // Absolute unavailability
+            if (sortedNames.length === 0) {
+                displayBox.classList.add('items-center', 'justify-center', 'text-gray-400', 'italic');
+                displayBox.textContent = 'None selected';
+            } else {
+                displayBox.classList.remove('items-center', 'justify-center', 'text-gray-400', 'italic');
+                sortedNames.forEach(name => {
+                    const tag = document.createElement('span');
+                    tag.className = 'selected-name-tag bg-sky-500'; // Specific color for todays doctors
+                    tag.textContent = name;
+                    tag.dataset.name = name; // Store name for easy deselection
+                    tag.addEventListener('click', (event) => { // Deselect on click (Req 5)
+                        const nameToDeselect = event.target.dataset.name;
+                        const checkbox = checkboxGroup.querySelector(`input[type="checkbox"][value="${CSS.escape(nameToDeselect)}"]`);
+                        if (checkbox) {
+                            checkbox.checked = false;
+                            checkbox.dispatchEvent(new Event('change')); // Trigger change
+                        }
+                    });
+                    displayBox.appendChild(tag);
+                });
             }
-
-            if (postDutySelections.has(residentName) || opdSelections.has(residentName)) {
-                status.isStrictlyUnavailable = true; // Unavailable for other metadata if post-duty/OPD
-                status.isGenerallyUnavailable = true; // Unavailable for beds if post-duty/OPD
-                 // Can still do infection control if post-duty/OPD (Req 1 specific interpretation)
-                 // Cannot receive new patients if post-duty/OPD for this logic
-                status.isAvailableForNewPatients = false; 
-            }
-            
-            // Check other bed assignment unavailability fields
-            bedAssignmentUnavailabilityFields.forEach(field => {
-                if (field !== 'post-duty' && field !== 'on-leave-today' && field !== 'sick-leave' && field !== 'opd') {
-                    if (getSelectedNamesFromMetadata(field).has(residentName)) {
-                        status.isGenerallyUnavailable = true;
-                        // If generally unavailable for beds, also unavailable for new patients by default
-                        status.isAvailableForNewPatients = false;
-                    }
-                }
-            });
-            
-            return status;
         }
 
         function getSelectedNamesFromMetadata(field) {
@@ -735,103 +879,127 @@
             return set;
         }
 
-
-        function populateMetadataCheckboxGroups() {
-            const metadataGroupContainers = document.querySelectorAll('.metadata-checkbox-group');
-            const settings = localStorage.getItem('nicuSettings') ? JSON.parse(localStorage.getItem('nicuSettings')) : { categories: {}, customCategories: [] };
-            let allResidentsByCategory = { ...settings.categories };
-            if (settings.customCategories) {
-                settings.customCategories.forEach(cat => {
-                    allResidentsByCategory[cat.name] = cat.names ? [...cat.names] : []; // Ensure it's an array
-                });
-            }
-            // Alphabetical sort within categories (Req 4)
-            for (const category in allResidentsByCategory) {
-                if (Array.isArray(allResidentsByCategory[category])) {
-                    allResidentsByCategory[category].sort((a, b) => a.localeCompare(b));
+        // This function determines if a resident should be *disabled* in a given checkbox field,
+        // based on selections in *other* fields.
+        function isResidentDisabledInField(residentName, targetField) {
+            // 1. Check strict exclusions: If resident is selected in any strictExclusionField (and not the target field itself), they are disabled everywhere else.
+            for (const field of strictExclusionFields) {
+                if (field !== targetField && getSelectedNamesFromMetadata(field).has(residentName)) {
+                    return true;
                 }
             }
 
+            // 2. Check general exclusions for bed assignments and new patients
+            // These apply to: bed assignment dropdowns, todays doctors checkboxes, supervisor checkboxes, new-patients field, infection-control field.
+            const isBedRelatedField = targetField.startsWith('bed-') || targetField.startsWith('supervisor-');
+            const isNewPatientsField = targetField === 'new-patients';
+            const isInfectionControlField = targetField === 'infection-control';
+
+            if (isBedRelatedField || isNewPatientsField || isInfectionControlField) {
+                for (const field of bedAndNewPatientExclusionFields) {
+                    // If resident is selected in any of these exclusion fields (and it's not the current target field), disable.
+                    if (field !== targetField && getSelectedNamesFromMetadata(field).has(residentName)) {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+
+        function populateMetadataCheckboxGroups() {
+            const metadataGroupContainers = document.querySelectorAll('.metadata-checkbox-group');
+            // residentToFullCategoryMap is populated by applySettingsToUI
 
             metadataGroupContainers.forEach(groupContainer => {
                 const currentSelections = Array.from(groupContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-                groupContainer.innerHTML = ''; 
+                groupContainer.innerHTML = '';
                 const field = groupContainer.dataset.field;
 
                 const residentCheckboxes = { available: [], unavailable: [] };
 
-                const createCheckboxElement = (name, value, fieldName, isDisabled, isUnavailableStyled) => {
-                    const label = document.createElement('label');
-                    const checkbox = document.createElement('input');
-                    checkbox.type = 'checkbox';
-                    checkbox.value = value;
-                    checkbox.name = `${fieldName}-${value.replace(/\s+/g, '_')}`;
-                    checkbox.id = `checkbox-${fieldName}-${CSS.escape(value.replace(/[^\w-]/g, ''))}`;
-                    
-                    if (currentSelections.includes(value)) checkbox.checked = true;
-                    checkbox.disabled = isDisabled;
-                    if (isUnavailableStyled) label.classList.add('disabled-option');
-                    
-                    checkbox.addEventListener('change', () => {
-                        updateSelectedNamesBox(groupContainer);
-                        updateCombinedUnavailability(); 
-                        // If a primary unavailability field changes, repopulate all to reflect cascading disables
-                        if (primaryUnavailabilityFields.includes(field) || field === 'infection-control') { 
-                            populateMetadataCheckboxGroups(); 
-                        }
-                        populateResidentDropdownsAndCheckboxes(); 
-                    });
-                    label.appendChild(checkbox);
-                    label.appendChild(document.createTextNode(" " + name));
-                    return label;
-                };
-                
-                const categoryOrder = ['Phase B', 'Phase A', 'Gynae', 'Feto'].concat(
-                    settings.customCategories ? settings.customCategories.map(c => c.name) : []
-                );
+                // Get all distinct residents and sort them by their category for display within the checkbox group
+                const allResidents = Array.from(residentToFullCategoryMap.keys());
+                const sortedResidents = allResidents.sort((a, b) => {
+                    const catA = residentToFullCategoryMap.get(a) || 'Custom';
+                    const catB = residentToFullCategoryMap.get(b) || 'Custom';
+                    const indexA = categoryOrderForSorting.indexOf(catA);
+                    const indexB = categoryOrderForSorting.indexOf(catB);
 
-                categoryOrder.forEach(categoryName => {
-                    if (allResidentsByCategory[categoryName] && allResidentsByCategory[categoryName].length > 0) {
-                        const optgroupLabelDiv = document.createElement('div');
-                        optgroupLabelDiv.className = 'optgroup-label';
-                        optgroupLabelDiv.textContent = categoryName;
-                        // Will append this later if there are any checkboxes for this category
-
-                        let hasCheckboxesInOptgroup = false;
-                        allResidentsByCategory[categoryName].forEach(name => {
-                            let isDisabled = false;
-                            let isUnavailableStyled = false;
-                            const availabilityStatus = getResidentAvailabilityStatus(name, field);
-
-                            if (field === 'infection-control') { // Req 1: Infection control availability
-                                isDisabled = !availabilityStatus.isAvailableForInfectionControl;
-                                isUnavailableStyled = isDisabled;
-                            } else if (field === 'new-patients') { // Req 3: New patients received by
-                                isDisabled = !availabilityStatus.isAvailableForNewPatients;
-                                isUnavailableStyled = isDisabled;
-                            } else { // For other metadata fields
-                                isDisabled = availabilityStatus.isStrictlyUnavailable;
-                                isUnavailableStyled = isDisabled;
-                            }
-                            
-                            const checkboxEl = createCheckboxElement(name, name, field, isDisabled, isUnavailableStyled);
-                            if (isUnavailableStyled) {
-                                residentCheckboxes.unavailable.push({el: checkboxEl, optgroup: optgroupLabelDiv, name: name});
-                            } else {
-                                residentCheckboxes.available.push({el: checkboxEl, optgroup: optgroupLabelDiv, name: name});
-                            }
-                            hasCheckboxesInOptgroup = true;
-                        });
-                         if(hasCheckboxesInOptgroup && !residentCheckboxes.available.find(item => item.optgroup === optgroupLabelDiv) && !residentCheckboxes.unavailable.find(item => item.optgroup === optgroupLabelDiv)){
-                            // If optgroup was created but no children added yet, means all were pushed to available/unavailable arrays
-                            // We need to ensure the optgroup label is added if there are items for it.
-                            // This is tricky, might need to add optgroup labels when appending items.
-                        }
+                    if (indexA !== -1 && indexB !== -1) {
+                        if (indexA === indexB) return a.localeCompare(b); // Alphabetical within same category
+                        return indexA - indexB;
                     }
+                    if (indexA !== -1) return -1; // A comes before B if B is a custom category
+                    if (indexB !== -1) return 1;  // B comes before A if A is a custom category
+                    return catA.localeCompare(catB) || a.localeCompare(b); // Alphabetical by custom category then name
+                });
+
+                // Group residents by their full category for displaying optgroup labels
+                const groupedResidents = {};
+                sortedResidents.forEach(name => {
+                    const fullCategoryName = residentToFullCategoryMap.get(name) || 'Others'; // Fallback for safety
+                    if (!groupedResidents[fullCategoryName]) {
+                        groupedResidents[fullCategoryName] = [];
+                    }
+                    groupedResidents[fullCategoryName].push(name);
+                });
+
+                // Sort the categories based on categoryOrderForSorting, then alphabetically for custom ones
+                const sortedCategoryNames = Object.keys(groupedResidents).sort((catA, catB) => {
+                    const indexA = categoryOrderForSorting.indexOf(catA);
+                    const indexB = categoryOrderForSorting.indexOf(catB);
+
+                    if (indexA !== -1 && indexB !== -1) {
+                        return indexA - indexB;
+                    }
+                    if (indexA !== -1) return -1;
+                    if (indexB !== -1) return 1;
+                    return catA.localeCompare(catB); // Alphabetical for custom categories not in explicit order
+                });
+
+
+                sortedCategoryNames.forEach(categoryName => {
+                    const optgroupLabelDiv = document.createElement('div');
+                    optgroupLabelDiv.className = 'optgroup-label';
+                    optgroupLabelDiv.textContent = categoryName;
+
+                    groupedResidents[categoryName].forEach(name => {
+                        const isDisabled = isResidentDisabledInField(name, field);
+                        const label = document.createElement('label');
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.value = name;
+                        checkbox.name = `${field}-${name.replace(/\s+/g, '_')}`;
+                        checkbox.id = `checkbox-${field}-${CSS.escape(name.replace(/[^\w-]/g, ''))}`;
+
+                        if (currentSelections.includes(name)) checkbox.checked = true;
+                        checkbox.disabled = isDisabled;
+
+                        checkbox.addEventListener('change', () => {
+                            updateSelectedNamesBox(groupContainer);
+                            // Important: If an exclusion field (strict or bed/new-patient) changes,
+                            // we need to re-evaluate ALL checkboxes across the app.
+                            if (strictExclusionFields.has(field) || bedAndNewPatientExclusionFields.has(field)) {
+                                populateMetadataCheckboxGroups(); // Re-render all metadata checkboxes
+                                populateResidentDropdownsAndCheckboxes(); // Re-render all bed/supervisor checkboxes
+                            }
+                        });
+
+                        label.appendChild(checkbox);
+                        label.appendChild(document.createTextNode(" " + name));
+
+                        if (isDisabled) {
+                            label.classList.add('disabled-option');
+                            residentCheckboxes.unavailable.push({el: label, optgroup: optgroupLabelDiv});
+                        } else {
+                            residentCheckboxes.available.push({el: label, optgroup: optgroupLabelDiv});
+                        }
+                    });
                 });
 
                 // Append available checkboxes, then unavailable (Req 13)
-                // Ensure optgroup labels are added correctly with their items
                 let lastAppendedOptgroupAvailable = null;
                 residentCheckboxes.available.forEach(item => {
                     if (item.optgroup && item.optgroup !== lastAppendedOptgroupAvailable) {
@@ -842,47 +1010,73 @@
                 });
 
                 if (residentCheckboxes.unavailable.length > 0 && residentCheckboxes.available.length > 0) {
-                    const separator = document.createElement('hr'); // Visual separator
+                    const separator = document.createElement('hr');
                     separator.className = 'my-2 border-gray-300';
                     groupContainer.appendChild(separator);
                 }
-                
+
                 let lastAppendedOptgroupUnavailable = null;
                 residentCheckboxes.unavailable.forEach(item => {
-                     if (item.optgroup && item.optgroup !== lastAppendedOptgroupUnavailable && item.optgroup !== lastAppendedOptgroupAvailable) {
-                        // Avoid re-adding if already added for available items
-                        if (!Array.from(groupContainer.children).includes(item.optgroup)) {
-                           groupContainer.appendChild(item.optgroup);
-                        }
+                    if (item.optgroup && item.optgroup !== lastAppendedOptgroupUnavailable && item.optgroup !== lastAppendedOptgroupAvailable) {
+                        groupContainer.appendChild(item.optgroup);
                         lastAppendedOptgroupUnavailable = item.optgroup;
                     }
                     groupContainer.appendChild(item.el);
                 });
 
-                updateSelectedNamesBox(groupContainer); 
+                updateSelectedNamesBox(groupContainer);
             });
         }
         
-        function updateCombinedUnavailability() {
-            unavailableResidents.clear();
-            // Use bedAssignmentUnavailabilityFields to determine who is unavailable for bed assignments
-            bedAssignmentUnavailabilityFields.forEach(field => {
-                const selectedInField = getSelectedNamesFromMetadata(field);
-                selectedInField.forEach(name => unavailableResidents.add(name));
+        // Utility function to sort names based on categoryOrderForSorting (Req 5)
+        function sortNamesByCategory(names) {
+            return names.sort((a, b) => {
+                const catA = residentToFullCategoryMap.get(a) || 'Custom';
+                const catB = residentToFullCategoryMap.get(b) || 'Custom';
+
+                const indexA = categoryOrderForSorting.indexOf(catA);
+                const indexB = categoryOrderForSorting.indexOf(catB);
+
+                if (indexA !== -1 && indexB !== -1) {
+                    if (indexA === indexB) return a.localeCompare(b); // Alphabetical within same category
+                    return indexA - indexB;
+                }
+                if (indexA !== -1) return -1; // A comes before B if B is a custom category
+                if (indexB !== -1) return 1;  // B comes before A if A is a custom category
+                return catA.localeCompare(catB) || a.localeCompare(b); // Alphabetical by custom category then name
             });
         }
-        
+
         function updateSelectedNamesBox(groupContainer) {
             const field = groupContainer.dataset.field;
             const selectedBox = document.querySelector(`.selected-names-box[data-field="${field}"]`);
             if (selectedBox) {
-                selectedBox.innerHTML = ''; 
-                groupContainer.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
-                    const tag = document.createElement('span');
-                    tag.className = 'selected-name-tag';
-                    tag.textContent = checkbox.value;
-                    selectedBox.appendChild(tag);
-                });
+                const selectedNames = Array.from(groupContainer.querySelectorAll('input[type="checkbox"]:checked')).map(checkbox => checkbox.value);
+                const sortedNames = sortNamesByCategory(selectedNames); // Apply sorting (Req 5)
+
+                selectedBox.innerHTML = '';
+                if (sortedNames.length === 0) {
+                    selectedBox.classList.add('items-center', 'justify-center', 'text-gray-400', 'italic');
+                    selectedBox.textContent = 'None selected';
+                } else {
+                    selectedBox.classList.remove('items-center', 'justify-center', 'text-gray-400', 'italic');
+                    sortedNames.forEach(name => {
+                        const tag = document.createElement('span');
+                        tag.className = 'selected-name-tag'; // bg-green-500 is default, but tag will inherit from style
+                        tag.textContent = name;
+                        tag.dataset.name = name; // Store name for easy deselection
+                        tag.addEventListener('click', (event) => { // Deselect on click (Req 5)
+                            const nameToDeselect = event.target.dataset.name;
+                            const checkbox = groupContainer.querySelector(`input[type="checkbox"][value="${CSS.escape(nameToDeselect)}"]`);
+                            if (checkbox) {
+                                checkbox.checked = false;
+                                // Trigger change to re-populate and update availability across app
+                                checkbox.dispatchEvent(new Event('change'));
+                            }
+                        });
+                        selectedBox.appendChild(tag);
+                    });
+                }
             }
         }
         
@@ -894,19 +1088,21 @@
                 'yellow-red': document.getElementById('yellow-red-supervisors-checkbox-group')
             };
             
-            const settings = localStorage.getItem('nicuSettings') ? JSON.parse(localStorage.getItem('nicuSettings')) : { categories: {}, customCategories: [] };
-            let phaseBResidents = (settings.categories && settings.categories['Phase B']) ? [...settings.categories['Phase B']] : [];
-            phaseBResidents.sort((a,b) => a.localeCompare(b)); // Sort Phase B (Req 4)
+            // Get all Phase B residents (combined from all sub-categories)
+            const allPhaseBResidents = Array.from(residentToFullCategoryMap.entries())
+                                        .filter(([name, category]) => category.startsWith('Phase B'))
+                                        .map(([name]) => name);
+            // Sort Phase B residents by their sub-category order (Req 4, which is covered by Req 5's categoryOrderForSorting)
+            const sortedPhaseBResidents = sortNamesByCategory(allPhaseBResidents);
 
             // For assignedDoctor (Phase B for beds - Req 9: always available in this dropdown)
             assignedDoctorSelects.forEach(select => {
                 const currentValue = select.value;
                 select.innerHTML = '<option value="">Select doctor</option>';
-                phaseBResidents.forEach(name => {
+                sortedPhaseBResidents.forEach(name => {
                     const option = document.createElement('option');
                     option.value = name;
                     option.textContent = name;
-                    // No unavailability check here per Req 9
                     select.appendChild(option);
                 });
                 select.value = currentValue; // Restore selection
@@ -923,13 +1119,8 @@
                 const availableForGroup = [];
                 const unavailableForGroup = [];
 
-                phaseBResidents.forEach(name => {
-                    const availabilityStatus = getResidentAvailabilityStatus(name);
-                    // Supervisors are for bed duty, so use isGenerallyUnavailable.
-                    // However, the spirit of Req 9 might extend to supervisors too - that Phase B are always *listable* for supervisory roles.
-                    // Let's assume supervisors follow general bed assignment unavailability for now, unless specified otherwise.
-                    const isDisabled = availabilityStatus.isGenerallyUnavailable; 
-
+                sortedPhaseBResidents.forEach(name => {
+                    const isDisabled = isResidentDisabledInField(name, `supervisor-${key}`); // Use a unique field name for this context
                     const checkboxId = `supervisor-${key}-${CSS.escape(name.replace(/[^\w-]/g, ''))}`;
                     const label = document.createElement('label');
                     const checkbox = document.createElement('input');
@@ -950,69 +1141,76 @@
                     }
                 });
                 availableForGroup.forEach(label => groupElement.appendChild(label));
-                if (unavailableForGroup.length > 0 && availableForGroup.length > 0) groupElement.appendChild(document.createElement('hr'));
+                if (unavailableForGroup.length > 0 && availableForGroup.length > 0) {
+                    const separator = document.createElement('hr');
+                    separator.className = 'my-2 border-gray-300';
+                    groupElement.appendChild(separator);
+                }
                 unavailableForGroup.forEach(label => groupElement.appendChild(label));
             }
 
 
             // For Today's Doctors (checkbox groups - non-Phase B)
-            const nonPhaseBCategoriesRaw = ['Phase A', 'Gynae', 'Feto'].concat(settings.customCategories ? settings.customCategories.map(c => c.name).filter(name => name !== 'Phase B') : []);
-            
             todaysDoctorsCheckboxGroups.forEach(groupElement => {
                 const bedCard = groupElement.closest('.bed-card');
+                const bedName = bedCard ? bedCard.dataset.bedName : 'unknown'; // Get bed name for specific field ID
                 const currentSelectedNames = Array.from(groupElement.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
                 groupElement.innerHTML = ''; 
 
                 const availableForGroup = { categories: {} };
                 const unavailableForGroup = { categories: {} };
 
+                // Get all non-Phase B residents
+                const nonPhaseBResidents = Array.from(residentToFullCategoryMap.entries())
+                                            .filter(([name, category]) => !category.startsWith('Phase B'));
 
-                nonPhaseBCategoriesRaw.forEach(catKeyOrName => {
-                    let namesInCategory = [];
-                    if (settings.categories && settings.categories[catKeyOrName]) {
-                        namesInCategory = [...settings.categories[catKeyOrName]];
-                    } else if (settings.customCategories) {
-                        const customCat = settings.customCategories.find(cc => cc.name === catKeyOrName);
-                        if (customCat && customCat.names) namesInCategory = [...customCat.names];
+                // Group them by their full category name
+                nonPhaseBResidents.forEach(([name, fullCategoryName]) => {
+                    if (!availableForGroup.categories[fullCategoryName]) {
+                        availableForGroup.categories[fullCategoryName] = [];
+                        unavailableForGroup.categories[fullCategoryName] = [];
                     }
-                    namesInCategory.sort((a, b) => a.localeCompare(b)); // Sort within category (Req 4)
 
-                    if (namesInCategory.length > 0) {
-                        availableForGroup.categories[catKeyOrName] = [];
-                        unavailableForGroup.categories[catKeyOrName] = [];
+                    const isDisabled = isResidentDisabledInField(name, `todays-doctor-${bedName}`); // Unique field name
+                    const checkboxId = `bed-${bedName}-todaydoc-${CSS.escape(name.replace(/[^\w-]/g, ''))}`;
+                    const label = document.createElement('label');
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.value = name;
+                    checkbox.id = checkboxId;
+                    if (currentSelectedNames.includes(name)) checkbox.checked = true;
+                    checkbox.disabled = isDisabled;
 
-                        namesInCategory.forEach(name => {
-                            const availabilityStatus = getResidentAvailabilityStatus(name);
-                            const isDisabled = availabilityStatus.isGenerallyUnavailable; // Bed assignment context
+                    checkbox.addEventListener('change', () => {
+                        updateSelectedTodaysDoctorsInBox(bedCard);
+                    });
+                    label.appendChild(checkbox);
+                    label.appendChild(document.createTextNode(" " + name));
 
-                            const checkboxId = `bed-${bedCard.dataset.bedName}-todaydoc-${CSS.escape(name.replace(/[^\w-]/g, ''))}`;
-                            const label = document.createElement('label');
-                            const checkbox = document.createElement('input');
-                            checkbox.type = 'checkbox';
-                            checkbox.value = name;
-                            checkbox.id = checkboxId;
-                            if (currentSelectedNames.includes(name)) checkbox.checked = true;
-                            checkbox.disabled = isDisabled;
-
-                            checkbox.addEventListener('change', () => {
-                                updateSelectedTodaysDoctorsInBox(bedCard);
-                            });
-                            label.appendChild(checkbox);
-                            label.appendChild(document.createTextNode(" " + name));
-
-                            if (isDisabled) {
-                                label.classList.add('disabled-option');
-                                unavailableForGroup.categories[catKeyOrName].push(label);
-                            } else {
-                                availableForGroup.categories[catKeyOrName].push(label);
-                            }
-                        });
+                    if (isDisabled) {
+                        label.classList.add('disabled-option');
+                        unavailableForGroup.categories[fullCategoryName].push(label);
+                    } else {
+                        availableForGroup.categories[fullCategoryName].push(label);
                     }
                 });
                 
-                // Append available, then unavailable, maintaining category groups (Req 4 & 13)
+                // Sort category keys for consistent display
+                const sortedAllCategoryNames = Object.keys(availableForGroup.categories).sort((catA, catB) => {
+                    const indexA = categoryOrderForSorting.indexOf(catA);
+                    const indexB = categoryOrderForSorting.indexOf(catB);
+
+                    if (indexA !== -1 && indexB !== -1) {
+                        return indexA - indexB;
+                    }
+                    if (indexA !== -1) return -1;
+                    if (indexB !== -1) return 1;
+                    return catA.localeCompare(catB);
+                });
+
+
                 let hasAddedAvailable = false;
-                for (const catName in availableForGroup.categories) {
+                sortedAllCategoryNames.forEach(catName => {
                     if (availableForGroup.categories[catName].length > 0) {
                         const optLabel = document.createElement('div');
                         optLabel.className = 'optgroup-label';
@@ -1021,13 +1219,15 @@
                         availableForGroup.categories[catName].forEach(label => groupElement.appendChild(label));
                         hasAddedAvailable = true;
                     }
-                }
+                });
 
                 let hasAddedUnavailable = false;
-                for (const catName in unavailableForGroup.categories) {
-                     if (unavailableForGroup.categories[catName].length > 0) {
-                        if (hasAddedAvailable && !hasAddedUnavailable) { // Add HR only once
-                            groupElement.appendChild(document.createElement('hr'));
+                sortedAllCategoryNames.forEach(catName => {
+                    if (unavailableForGroup.categories[catName].length > 0) {
+                        if (hasAddedAvailable && !hasAddedUnavailable) { 
+                            const separator = document.createElement('hr');
+                            separator.className = 'my-2 border-gray-300';
+                            groupElement.appendChild(separator);
                         }
                         const optLabel = document.createElement('div');
                         optLabel.className = 'optgroup-label';
@@ -1036,7 +1236,7 @@
                         unavailableForGroup.categories[catName].forEach(label => groupElement.appendChild(label));
                         hasAddedUnavailable = true;
                     }
-                }
+                });
                 updateSelectedTodaysDoctorsInBox(bedCard); 
             });
         }
@@ -1065,14 +1265,45 @@
         
         function getCurrentSettingsFromUI() {
             const settings = { categories: {}, customCategories: [] };
-            const defaultCategoryIds = ['phase-b', 'phase-a', 'gynae', 'feto'];
-            defaultCategoryIds.forEach(id => {
-                const textarea = document.getElementById(id);
-                if (textarea) {
-                    const names = textarea.value.split(/[\n,]+/).map(name => name.trim()).filter(name => name);
-                    settings.categories[id.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())] = names;
+
+            // Default categories with sub-levels
+            const defaultCategoriesMap = {
+                'Phase B': {
+                    'Year 5 Old': 'phase-b-y5o', 'Year 5 New': 'phase-b-y5n',
+                    'Year 4 Old': 'phase-b-y4o', 'Year 4 New': 'phase-b-y4n',
+                    'Year 3 Old': 'phase-b-y3o', 'Year 3 New': 'phase-b-y3n'
+                },
+                'Phase A': {
+                    'Old': 'phase-a-old', 'New': 'phase-a-new'
+                },
+                'Gynae': 'gynae',
+                'Feto': 'feto',
+                'GP': 'gp',         // New
+                'Pedisurgery': 'pedisurgery', // New
+                'FCPS': 'fcps'      // New
+            };
+
+            for (const topCategory in defaultCategoriesMap) {
+                const subCategories = defaultCategoriesMap[topCategory];
+                if (typeof subCategories === 'object') { // Has sub-levels
+                    for (const subCatName in subCategories) {
+                        const id = subCategories[subCatName];
+                        const textarea = document.getElementById(id);
+                        if (textarea) {
+                            const names = textarea.value.split(/[\n,]+/).map(name => name.trim()).filter(name => name);
+                            settings.categories[`${topCategory} - ${subCatName}`] = names;
+                        }
+                    }
+                } else { // Single level category
+                    const id = subCategories;
+                    const textarea = document.getElementById(id);
+                    if (textarea) {
+                        const names = textarea.value.split(/[\n,]+/).map(name => name.trim()).filter(name => name);
+                        settings.categories[topCategory] = names;
+                    }
                 }
-            });
+            }
+
             document.querySelectorAll('#custom-categories .custom-category-field').forEach(div => {
                 const nameInput = div.querySelector('.category-name');
                 const textarea = div.querySelector('textarea');
@@ -1089,7 +1320,6 @@
             localStorage.setItem('nicuSettings', JSON.stringify(settings));
             // Refresh UI that depends on settings
             populateMetadataCheckboxGroups(); 
-            updateCombinedUnavailability();   
             populateResidentDropdownsAndCheckboxes();  
             showModal('Success', 'Settings saved and applied to app!');
         }
@@ -1122,7 +1352,7 @@
                 const selectedKey = document.getElementById('settings-snapshot-select').value;
                 if (!selectedKey) return;
                 const settingsData = JSON.parse(localStorage.getItem(selectedKey));
-                applySettingsToUI(settingsData); // Apply to UI textareas
+                applySettingsToUI(settingsData); // Apply to UI textareas and populate residentToFullCategoryMap
                 saveSettingsToApp(); // Save as current main settings and refresh everything
                 showModal('Success', 'Archived settings loaded and applied!');
             }, null, true);
@@ -1132,10 +1362,19 @@
             showModal('Load Sample Data', 'This will replace your current settings and save them. Continue?', () => {
                 const sampleSettings = {
                     categories: {
-                        'Phase B': ['Dr. Sonia', 'Dr. Shanta', 'Dr. Tazim', 'Dr. Rumana', 'Dr. Upama', 'Dr. Maimuna', 'Dr. Afrina', 'Dr. Tishat', 'Dr. Zahid', 'Dr. Saikot', 'Dr. Ikbal', 'Dr. Kashem'],
-                        'Phase A': ['Dr. Hira', 'Dr. Zarin', 'Dr. Anwara', 'Dr. Yeasmin', 'Dr. Tamanna', 'Dr. Akhteruzzaman', 'Dr. Raisul', 'Dr. Tamanna(FCPS)', 'Dr. Tahera', 'Dr. Rehana'],
-                        'Gynae': ['Dr. Sabrina(Gynae)', 'Dr. Aimun (Gynae)', 'Dr. Sharmin (Gynae)', 'Dr. Tahmina (Gynae)'],
-                        'Feto': ['Dr. Farjana', 'Dr. Karishma', 'Dr. Nusrat', 'Dr. Ram', 'Dr. Trisha', 'Dr. Zubayra']
+                        'Phase B - Year 5 Old': ['Dr. Sonia', 'Dr. Shanta'],
+                        'Phase B - Year 5 New': ['Dr. Tazim', 'Dr. Rumana'],
+                        'Phase B - Year 4 Old': ['Dr. Upama', 'Dr. Maimuna'],
+                        'Phase B - Year 4 New': ['Dr. Afrina', 'Dr. Tishat'],
+                        'Phase B - Year 3 Old': ['Dr. Zahid', 'Dr. Saikot'],
+                        'Phase B - Year 3 New': ['Dr. Ikbal', 'Dr. Kashem'],
+                        'Phase A - Old': ['Dr. Hira', 'Dr. Zarin', 'Dr. Anwara'],
+                        'Phase A - New': ['Dr. Yeasmin', 'Dr. Tamanna', 'Dr. Akhteruzzaman'],
+                        'Gynae': ['Dr. Sabrina(Gynae)', 'Dr. Aimun (Gynae)', 'Dr. Sharmin (Gynae)'],
+                        'Feto': ['Dr. Farjana', 'Dr. Karishma', 'Dr. Nusrat'],
+                        'GP': ['Dr. Ram', 'Dr. Trisha'], // New
+                        'Pedisurgery': ['Dr. Zubayra', 'Dr. Liam'], // New
+                        'FCPS': ['Dr. Olivia', 'Dr. Noah'] // New
                     },
                     customCategories: [{ name: "Fellows", names: ["Dr. Fellow A", "Dr. Fellow B"] }]
                 };
@@ -1215,7 +1454,7 @@
             ];
 
             metadataOrder.forEach(key => {
-                const labelElement = document.querySelector(`.metadata-checkbox-group[data-field="${key}"]`)?.parentElement.querySelector('label.block');
+                const labelElement = document.querySelector(`.metadata-field-container[data-field="${key}"]`)?.querySelector('label.block');
                 let labelText = key.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
                 if (labelElement) { // Try to get the exact label text from HTML
                     labelText = labelElement.textContent;
@@ -1246,12 +1485,13 @@
 
                 let sectionOutput = `#${title}\n`;
                 if (supervisors.length > 0) {
-                    sectionOutput += supervisors.join('\n') + '\n'; 
+                    sectionOutput += "Supervisors: " + supervisors.join(', ') + '\n'; 
                 }
                 
-                const uniqueTodaysDoctorsOverall = [...new Set(orderedBedsData.flatMap(bed => bed.todaysDoctors))];
+                // Get all unique "Today's Doctors" for this section and sort them
+                const uniqueTodaysDoctorsOverall = sortNamesByCategory([...new Set(orderedBedsData.flatMap(bed => bed.todaysDoctors))]);
                 if (uniqueTodaysDoctorsOverall.length > 0) {
-                     sectionOutput += `Phase A- ${uniqueTodaysDoctorsOverall.join(', ')}\n`;
+                     sectionOutput += `Today's Doctors: ${uniqueTodaysDoctorsOverall.join(', ')}\n`;
                 }
                 sectionOutput += '\n';
 
@@ -1368,6 +1608,7 @@
 
             document.querySelectorAll('.metadata-checkbox-group').forEach(groupContainer => {
                 const field = groupContainer.dataset.field;
+                // Uncheck all first, then check based on loaded data
                 groupContainer.querySelectorAll('input[type="checkbox"]').forEach(checkbox => checkbox.checked = false); 
                 if (distributionData.metadata[field]) {
                     distributionData.metadata[field].forEach(name => {
@@ -1378,15 +1619,16 @@
                 updateSelectedNamesBox(groupContainer);
             });
             
-            updateCombinedUnavailability(); 
-            populateMetadataCheckboxGroups(); // Apply primary unavailability disabling
-            populateResidentDropdownsAndCheckboxes(); // Re-populate ALL based on new metadata
+            // Re-populate all checkboxes/dropdowns based on newly loaded metadata state for correct availability
+            populateMetadataCheckboxGroups(); 
+            populateResidentDropdownsAndCheckboxes(); 
 
             const loadBedCardAssignments = (containerId, bedDataArray) => {
                  document.querySelectorAll(`#${containerId} .bed-card`).forEach(card => {
                     const bedName = card.dataset.bedName;
                     const bedData = bedDataArray.find(b => b.bed === bedName);
                     if (bedData) {
+                        // For assigned doctor (Phase B), Req 9 means always available in dropdown
                         card.querySelector('.assigned-doctor').value = bedData.assignedDoctor || "";
                         
                         const todaysCheckboxes = card.querySelectorAll('.todays-doctors-checkbox-group input[type="checkbox"]');
@@ -1412,7 +1654,7 @@
                 if (supervisorArray) {
                     supervisorArray.forEach(name => {
                         const checkbox = groupElement.querySelector(`input[type="checkbox"][value="${CSS.escape(name)}"]`);
-                         if (checkbox && !checkbox.disabled) checkbox.checked = true;
+                         if (checkbox && !checkbox.disabled) checkbox.checked = true; // Check if checkbox exists and is not disabled
                     });
                 }
             };
@@ -1467,7 +1709,10 @@
 
                 document.querySelectorAll('.assigned-doctor').forEach(select => select.selectedIndex = 0);
                 document.querySelectorAll('.todays-doctors-checkbox-group input[type="checkbox"]').forEach(cb => cb.checked = false);
-                document.querySelectorAll('.selected-todays-doctors-box').forEach(box => box.innerHTML = '');
+                document.querySelectorAll('.selected-todays-doctors-box').forEach(box => {
+                    box.innerHTML = 'None selected';
+                    box.classList.add('items-center', 'justify-center', 'text-gray-400', 'italic');
+                });
                 
                 ['blue-ward-cabin-supervisors-checkbox-group', 'yellow-red-supervisors-checkbox-group'].forEach(id => {
                     const group = document.getElementById(id);
@@ -1477,7 +1722,8 @@
                 if (!document.getElementById('manual-date').checked) {
                     document.getElementById('date-field').value = new Date().toISOString().substr(0, 10);
                 }
-                updateCombinedUnavailability(); 
+                
+                // Re-evaluate and re-populate all checkboxes/dropdowns based on cleared metadata state
                 populateMetadataCheckboxGroups(); 
                 populateResidentDropdownsAndCheckboxes();    
                 document.getElementById('output-textarea').value = '';
