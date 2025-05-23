@@ -42,7 +42,7 @@
         /* Styling for checkbox groups (metadata, active beds, supervisors, today's doctors) */
         .scrollable-checkbox-group {
             min-height: 100px;
-            max-height: 150px; 
+            max-height: 250px; /* Changed from 150px */
             overflow-y: auto;
             border: 1px solid #d1d5db; 
             border-radius: 0.375rem; 
@@ -556,7 +556,7 @@
             "Phase B - Year 4 Old", "Phase B - Year 4 New",
             "Phase B - Year 3 Old", "Phase B - Year 3 New",
             "Phase A - Old", "Phase A - New",
-            "Gynae", "Feto", "GP", "Pedisurgery", "FCPS" // New categories added here
+            "Gynae", "Feto", "GP", "Pedisurgery", "FCPS"
         ];
 
         // Metadata fields that, if selected, make a resident unavailable for *most other* duties (highest priority - Req 7)
@@ -1278,9 +1278,9 @@
                 },
                 'Gynae': 'gynae',
                 'Feto': 'feto',
-                'GP': 'gp',         // New
-                'Pedisurgery': 'pedisurgery', // New
-                'FCPS': 'fcps'      // New
+                'GP': 'gp',
+                'Pedisurgery': 'pedisurgery',
+                'FCPS': 'fcps'
             };
 
             for (const topCategory in defaultCategoriesMap) {
@@ -1372,9 +1372,9 @@
                         'Phase A - New': ['Dr. Yeasmin', 'Dr. Tamanna', 'Dr. Akhteruzzaman'],
                         'Gynae': ['Dr. Sabrina(Gynae)', 'Dr. Aimun (Gynae)', 'Dr. Sharmin (Gynae)'],
                         'Feto': ['Dr. Farjana', 'Dr. Karishma', 'Dr. Nusrat'],
-                        'GP': ['Dr. Ram', 'Dr. Trisha'], // New
-                        'Pedisurgery': ['Dr. Zubayra', 'Dr. Liam'], // New
-                        'FCPS': ['Dr. Olivia', 'Dr. Noah'] // New
+                        'GP': ['Dr. Ram', 'Dr. Trisha'], 
+                        'Pedisurgery': ['Dr. Zubayra', 'Dr. Liam'], 
+                        'FCPS': ['Dr. Olivia', 'Dr. Noah'] 
                     },
                     customCategories: [{ name: "Fellows", names: ["Dr. Fellow A", "Dr. Fellow B"] }]
                 };
